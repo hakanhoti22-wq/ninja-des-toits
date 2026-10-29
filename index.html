@@ -192,6 +192,85 @@
   .buy:disabled, .big-btn:disabled { opacity: 0.45; cursor: default; }
   .msg { min-height: 1.3em; font-weight: 800; font-size: calc(13 * var(--u)); color: var(--gold); }
   .earned { display: inline-flex; gap: calc(6 * var(--u)); align-items: center; font-weight: 800; color: var(--gold); }
+  /* Missions, coffre, collection, défi, seconde chance */
+  .missions { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(6 * var(--u)); width: 100%; text-align: left; }
+  .missions li {
+    display: flex; justify-content: space-between; align-items: center; gap: calc(8 * var(--u));
+    background: rgba(255, 255, 255, 0.07); border-radius: calc(10 * var(--u)); padding: calc(8 * var(--u)) calc(10 * var(--u));
+    font-size: calc(13 * var(--u)); line-height: 1.3;
+  }
+  .missions .mp { color: var(--gold); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .missions-note { margin: 0; font-size: calc(12 * var(--u)); opacity: 0.75; align-self: flex-start; text-align: left; }
+  .sec-title b { color: var(--gold); }
+  .banner {
+    margin: 0; width: 100%; border: 2px solid var(--gold); background: rgba(255, 207, 122, 0.12);
+    border-radius: calc(12 * var(--u)); padding: calc(8 * var(--u)) calc(12 * var(--u)); font-weight: 800; font-size: calc(14 * var(--u));
+  }
+  .chest-btn {
+    border: 0; border-radius: 999px; padding: calc(12 * var(--u)) calc(22 * var(--u)); cursor: pointer;
+    font: 400 calc(15 * var(--u)) var(--display); letter-spacing: 0.04em; color: #3a2200;
+    background: linear-gradient(#ffe08a, #f0a020); box-shadow: 0 calc(4 * var(--u)) 0 #a86a10;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { transform: scale(1.06); } }
+  .chest { position: relative; width: calc(120 * var(--u)); height: calc(92 * var(--u)); margin-block: calc(6 * var(--u)); }
+  .chest .base {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 60%; border-radius: calc(8 * var(--u));
+    background: linear-gradient(#b8732f, #7a4418); border: calc(4 * var(--u)) solid #ffcf7a;
+  }
+  .chest .lid {
+    position: absolute; left: 0; right: 0; top: 0; height: 44%; border-radius: calc(46 * var(--u)) calc(46 * var(--u)) calc(6 * var(--u)) calc(6 * var(--u));
+    background: linear-gradient(#d8913f, #a0602a); border: calc(4 * var(--u)) solid #ffcf7a;
+    transform-origin: 50% 100%; transition: transform 0.5s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  .chest .lock {
+    position: absolute; left: 50%; top: 36%; width: calc(22 * var(--u)); height: calc(26 * var(--u)); margin-left: calc(-11 * var(--u));
+    border-radius: calc(6 * var(--u)); background: #ffcf7a; z-index: 2;
+  }
+  .chest .glow {
+    position: absolute; left: 10%; right: 10%; top: 30%; height: 30%; border-radius: 50%;
+    background: radial-gradient(#fff6c0, rgba(255, 207, 122, 0)); opacity: 0; transition: opacity 0.4s 0.2s;
+  }
+  .chest.shake { animation: shake 0.45s ease-in-out infinite; }
+  @keyframes shake { 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+  .chest.open .lid { transform: translateY(-18%) rotate(-16deg); }
+  .chest.open .lock { opacity: 0; }
+  .chest.open .glow { opacity: 1; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: calc(4 * var(--u)); width: 100%; }
+  .day {
+    border-radius: calc(8 * var(--u)); padding: calc(6 * var(--u)) 0; background: rgba(255, 255, 255, 0.07);
+    font-weight: 800; font-size: calc(11 * var(--u)); text-align: center; line-height: 1.25;
+  }
+  .day.done { background: var(--gold); color: var(--night); }
+  .day.today { outline: calc(3 * var(--u)) solid var(--ink); }
+  .reward { font-family: var(--display); font-size: calc(20 * var(--u)); color: var(--gold); display: grid; gap: calc(4 * var(--u)); }
+  .album { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(8 * var(--u)); width: 100%; overflow-y: auto; min-height: 0; flex: 1 1 auto; padding: 2px; }
+  .ccard { display: grid; gap: calc(4 * var(--u)); justify-items: center; text-align: center; font-size: calc(12 * var(--u)); font-weight: 800; min-width: 0; }
+  .ccard .art {
+    width: 100%; aspect-ratio: 3 / 4; border-radius: calc(10 * var(--u)); display: grid; place-items: center;
+    background: linear-gradient(160deg, var(--c), #1d1730); border: calc(3 * var(--u)) solid var(--gold);
+    font: 400 calc(30 * var(--u)) var(--display); color: var(--ink);
+  }
+  .ccard.locked .art { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.35); }
+  .ccard small { color: var(--gold); }
+  #albumScreen .panel { overflow: hidden; max-height: 70%; }
+  @media (min-aspect-ratio: 1/1) { #albumScreen .panel { max-height: calc(100% - 32px); } }
+  .countdown { width: 100%; height: calc(8 * var(--u)); border-radius: 999px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
+  .countdown i { display: block; height: 100%; width: 100%; background: var(--gold); }
+  .countdown.run i { animation: drain 5s linear forwards; }
+  @keyframes drain { to { width: 0; } }
+  .name-input {
+    flex: 1 1 calc(120 * var(--u)); min-width: 0; border-radius: 999px; border: 2px solid rgba(255, 247, 236, 0.4);
+    background: rgba(255, 255, 255, 0.08); color: var(--ink); padding: calc(10 * var(--u)) calc(14 * var(--u));
+    font: 800 calc(15 * var(--u)) var(--body);
+  }
+  .name-input::placeholder { color: rgba(255, 247, 236, 0.5); }
+  .name-input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .chip.combo { background: var(--band); }
+  .over-list { margin: 0; padding: 0; list-style: none; display: grid; gap: calc(4 * var(--u)); font-weight: 800; color: var(--gold); font-size: calc(14 * var(--u)); }
+  .soft { margin: 0; font-size: calc(14 * var(--u)); opacity: 0.85; }
+  #overScreen .panel { max-height: calc(100% - 32px); overflow-y: auto; }
+  @media (prefers-reduced-motion: reduce) { .chest-btn, .chest.shake { animation: none; } }
 </style>
 
 <div id="app">
@@ -203,6 +282,9 @@
         <div class="chip"><small>Score</small><span id="score">0</span></div>
         <div class="chip"><small>Poissons</small><span id="fish">0</span></div>
         <div class="chip"><small>Niveau</small><span id="level">1</span></div>
+        <div class="chip"><small>Multi</small><span id="multi">×1</span></div>
+        <div class="chip" id="chalChip" hidden><small>Défi</small><span id="chal">0</span></div>
+        <div class="chip combo" id="comboChip" hidden><small>Combo</small><span id="combo">0</span></div>
       </div>
       <div class="powers" id="powers"></div>
     </div>
@@ -222,10 +304,19 @@
         <span class="wallet" title="Tes poissons"><svg class="fi" viewBox="0 0 24 14" aria-hidden="true"><path d="M1 7c4-6.5 12-6.5 16 0-4 6.5-12 6.5-16 0z"/><path d="M16 7l7-6v12z"/></svg><span class="bank">0</span></span>
         <span class="wallet muted" id="bestStart" hidden></span>
       </div>
+      <button class="big-btn" id="playBtn">Jouer</button>
+      <button class="chest-btn" id="chestBtn" hidden>Coffre du jour à ouvrir</button>
+      <p class="banner" id="chalBanner" hidden></p>
+      <p class="banner" id="eventBanner" hidden></p>
+      <span class="sec-title">Missions · multiplicateur <b id="multMenu">×1</b></span>
+      <ul class="missions" id="missionList"></ul>
+      <p class="missions-note" id="missionNote"></p>
       <span class="sec-title">Boosters pour la prochaine partie</span>
       <div class="boost-row" id="boostRow"></div>
-      <button class="big-btn" id="playBtn">Jouer</button>
-      <button class="ghost-btn" id="shopBtn">Boutique</button>
+      <div class="row">
+        <button class="ghost-btn" id="shopBtn">Boutique</button>
+        <button class="ghost-btn" id="albumBtn">Collection</button>
+      </div>
       <details class="howto">
         <summary>Comment jouer</summary>
         <ul class="rules">
@@ -233,6 +324,9 @@
           <li><b>Sauter</b> : glisse vers le haut ou touche l'écran (↑, Espace)</li>
           <li><b>Glisser</b> : glisse vers le bas (↓) sous les panneaux</li>
           <li><b>Poissons</b> : ils te servent à acheter des skins et des boosters</li>
+          <li><b>Missions</b> : 3 missions réussies = multiplicateur de score +1</li>
+          <li><b>Combo</b> : enchaîne les obstacles sans te faire toucher</li>
+          <li><b>Cartes dorées</b> : rares sur les toits, elles remplissent ta collection</li>
         </ul>
         <div class="bonus">
           <div style="--c:#e8483b"><b>Aimant</b>attire les poissons</div>
@@ -275,8 +369,47 @@
       </div>
       <p class="new-best" id="newBest" hidden>Nouveau record&nbsp;!</p>
       <p class="earned" id="earned"></p>
+      <p class="soft" id="almost" hidden></p>
+      <ul class="over-list" id="overList"></ul>
       <button class="big-btn" id="againBtn">Rejouer</button>
+      <div class="row">
+        <input class="name-input" id="playerName" maxlength="14" placeholder="Ton prénom" autocomplete="off">
+        <button class="ghost-btn" id="defiBtn">Défier un ami</button>
+      </div>
+      <p class="msg" id="defiMsg" aria-live="polite"></p>
+      <p class="banner" id="pauseTip" hidden>Tu joues depuis 30 minutes. Pense à faire une pause, à boire de l'eau et à reposer tes yeux&nbsp;!</p>
       <button class="ghost-btn" id="menuBtn">Menu</button>
+    </div>
+  </div>
+
+  <div class="overlay menu" id="chestScreen" hidden>
+    <div class="panel">
+      <h2>Coffre du jour</h2>
+      <div class="chest shake" id="chest"><div class="glow"></div><div class="lid"></div><div class="base"></div><div class="lock"></div></div>
+      <div class="reward" id="chestReward" hidden></div>
+      <div class="days" id="days"></div>
+      <p class="soft" id="chestNote">Reviens chaque jour : le coffre grossit jusqu'au jour 7.</p>
+      <button class="big-btn" id="chestOpen">Ouvrir</button>
+      <button class="ghost-btn" id="chestClose" hidden>Super&nbsp;!</button>
+    </div>
+  </div>
+
+  <div class="overlay menu" id="albumScreen" hidden>
+    <div class="panel">
+      <div class="shop-head"><h2>Collection</h2><span class="wallet muted" id="albumCount">0 / 12</span></div>
+      <p class="soft">Trouve les cartes dorées sur les toits. Album complet = 3&nbsp;000 poissons&nbsp;!</p>
+      <div class="album" id="album"></div>
+      <button class="ghost-btn" id="albumBack">Retour</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="reviveScreen" hidden>
+    <div class="panel">
+      <h2>Seconde chance&nbsp;?</h2>
+      <p class="soft">Continue ta course là où tu es tombé.</p>
+      <div class="countdown" id="reviveBar"><i></i></div>
+      <button class="big-btn" id="reviveYes">Continuer</button>
+      <button class="ghost-btn" id="reviveNo">Non merci</button>
     </div>
   </div>
 
@@ -817,6 +950,13 @@
   geo.jetFlame = new THREE.ConeGeometry(0.08, 0.36, 10);
   mat.jet = std(0xd03030, { metalness: 0.5, roughness: 0.4 });
   mat.flame = new THREE.MeshBasicMaterial({ color: 0xffa030, transparent: true, opacity: 0.9 });
+  const cardTex = canvasTex(128, 176, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#7a3fa0'); gr.addColorStop(1, '#2a1f55');
+    g.fillStyle = '#ffcf7a'; g.fillRect(0, 0, w, h); g.fillStyle = gr; g.fillRect(8, 8, w - 16, h - 16);
+    g.fillStyle = '#ffcf7a'; g.font = 'bold 96px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', w / 2, h / 2 + 6);
+  });
+  mat.card = std(0xffffff, { map: cardTex, emissive: 0xffffff, emissiveMap: cardTex, emissiveIntensity: 0.35, roughness: 0.4 });
+  geo.card = new THREE.BoxGeometry(0.55, 0.76, 0.04);
   function makePower(type) {
     const g = new THREE.Group();
     if (type === 'magnet') {
@@ -829,6 +969,8 @@
       g.add(mesh(geo.springBase, mat.metal, 0, -0.3, 0));
       for (let i = 0; i < 4; i++) { const r = mesh(geo.spring, mat.spring, 0, -0.2 + i * 0.13, 0); r.rotation.x = Math.PI / 2; g.add(r); }
       g.add(mesh(geo.springBase, mat.spring, 0, 0.32, 0));
+    } else if (type === 'card') {
+      g.add(new THREE.Mesh(geo.card, mat.card));
     } else if (type === 'jetpack') {
       for (const sd of [-1, 1]) {
         g.add(mesh(geo.jetTank, mat.jet, sd * 0.13, 0, 0));
@@ -907,13 +1049,16 @@
   // ---------- Stockage du record ----------
   // Poissons gagnés, skins achetés et boosters restent sur l'appareil.
   const SAVE_KEY = 'ninja3d-save';
-  const save = { fish: 0, best: 0, owned: ['minuit'], skin: 'minuit', boosters: {}, armed: {} };
+  const save = { fish: 0, best: 0, owned: ['minuit'], skin: 'minuit', boosters: {}, armed: {}, mult: 1, mDone: 0, missions: [], cards: {}, name: '' };
   try {
     const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
     if (d) Object.assign(save, d);
     save.best = Math.max(save.best || 0, +localStorage.getItem('ninja3d-best') || 0);
   } catch {}
   save.boosters = Object.assign({ jetpack: 0, yarn: 0, magnet: 0, double: 0 }, save.boosters);
+  save.daily = Object.assign({ last: '', streak: 0 }, save.daily);
+  save.cards = save.cards || {};
+  save.missions = save.missions || [];
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   let best = save.best;
   // Cadeau de bienvenue : 500 poissons, une seule fois par appareil.
@@ -926,6 +1071,113 @@
     { id: 'magnet', name: 'Aimant', desc: 'Attire les poissons pendant 15 s au départ.', price: 100, color: '#e8483b', dur: 15 },
     { id: 'double', name: 'Poissons ×2', desc: 'Poissons doublés pendant 20 s au départ.', price: 200, color: '#ffcf7a', dur: 20 },
   ];
+
+  // ---------- Missions : 3 en cours, chaque série de 3 réussites augmente le multiplicateur ----------
+  const MISSIONS = {
+    fish: { t: 'Ramasse {n} poissons en une partie', base: [50, 100, 180, 300, 450] },
+    dist: { t: 'Cours {n} m en une partie', base: [300, 600, 1000, 1500, 2500] },
+    jumps: { t: 'Saute {n} fois en une partie', base: [15, 30, 50, 80, 120] },
+    signs: { t: 'Glisse sous {n} panneaux en une partie', base: [2, 4, 7, 10, 15] },
+    gaps: { t: 'Saute par-dessus {n} trous en une partie', base: [1, 2, 4, 6, 9] },
+    powers: { t: 'Ramasse {n} bonus en une partie', base: [1, 2, 3, 4, 6] },
+    score: { t: 'Fais un score de {n} en une partie', base: [800, 2000, 4000, 7000, 12000] },
+    combo: { t: 'Atteins un combo de {n}', base: [10, 20, 35, 50, 80] },
+    fishTotal: { t: 'Ramasse {n} poissons au total', cum: true, base: [150, 300, 600, 1000, 1500] },
+    runs: { t: 'Joue {n} parties', cum: true, base: [2, 3, 5, 7, 10] },
+    cards: { t: 'Trouve {n} carte(s) dorée(s)', cum: true, base: [1, 1, 2, 2, 3] },
+  };
+  const missionTier = () => Math.min(4, Math.floor((save.mult - 1) / 3));
+  const missionReward = () => 50 + missionTier() * 50;
+  function newMission() {
+    const used = save.missions.map(m => m.k);
+    const k = pick(Object.keys(MISSIONS).filter(x => !used.includes(x)));
+    return { k, n: MISSIONS[k].base[missionTier()], prog: 0, fresh: state === 'play' };
+  }
+  function ensureMissions() { while (save.missions.length < 3) save.missions.push(newMission()); }
+  function runStat(k) {
+    if (!run) return 0;
+    return { fish: fishCount, dist: Math.floor(travel), jumps: run.jumps, signs: run.signs, gaps: run.gaps,
+      powers: run.powers, score: currentScore(), combo: run.maxCombo }[k] || 0;
+  }
+  // Remplace la mission i par une nouvelle et renvoie le message à afficher.
+  function completeMission(i) {
+    const reward = missionReward();
+    save.fish += reward;
+    save.mDone = (save.mDone || 0) + 1;
+    let msg = `Mission réussie : +${reward} poissons`;
+    if (save.mDone % 3 === 0 && save.mult < 30) { save.mult++; msg += ` · multiplicateur ×${save.mult} !`; }
+    save.missions.splice(i, 1);
+    save.missions.push(newMission());
+    persist();
+    $('multi').textContent = '×' + save.mult;
+    return msg;
+  }
+  function checkRunMissions() {
+    for (let i = 0; i < save.missions.length; i++) {
+      const m = save.missions[i];
+      if (MISSIONS[m.k].cum || m.fresh || runStat(m.k) < m.n) continue;
+      const msg = completeMission(i);
+      toast('Mission réussie !', msg.replace('Mission réussie : ', ''));
+      i--;
+    }
+  }
+  function checkCumMissions(out) {
+    for (let i = 0; i < save.missions.length; i++) {
+      const m = save.missions[i];
+      if (!MISSIONS[m.k].cum || m.prog < m.n) continue;
+      const msg = completeMission(i);
+      if (out) out.push(msg); else toast('Mission réussie !', msg.replace('Mission réussie : ', ''));
+      i--;
+    }
+  }
+
+  // ---------- Coffre du jour et série de jours ----------
+  const DAILY = [
+    { fish: 50 }, { fish: 75, boost: 'magnet' }, { fish: 100 }, { fish: 150, boost: 'yarn' },
+    { fish: 200 }, { fish: 250, boost: 'jetpack' }, { fish: 500, card: true },
+  ];
+  const dayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const today = () => dayKey(new Date());
+  const chestReady = () => save.daily.last !== today();
+
+  // ---------- Collection : 12 cartes dorées ----------
+  const CARDS = [
+    { id: 'gouttiere', name: 'Chat de gouttière', c: '#8a7a6a', l: 'G' },
+    { id: 'ninja', name: 'Chat ninja', c: '#e8483b', l: 'N' },
+    { id: 'pirate', name: 'Chat pirate', c: '#2a5a8a', l: 'P' },
+    { id: 'astro', name: 'Chat astronaute', c: '#5a6ad0', l: 'A' },
+    { id: 'chevalier', name: 'Chat chevalier', c: '#9aa4b0', l: 'C' },
+    { id: 'sorcier', name: 'Chat sorcier', c: '#7a3fa0', l: 'S' },
+    { id: 'surfeur', name: 'Chat surfeur', c: '#1ab0d0', l: 'S' },
+    { id: 'pompier', name: 'Chat pompier', c: '#d03020', l: 'P' },
+    { id: 'chef', name: 'Chat cuisinier', c: '#e0a040', l: 'C' },
+    { id: 'detective', name: 'Chat détective', c: '#6a4a32', l: 'D' },
+    { id: 'roi', name: 'Chat roi', c: '#ffc640', l: 'R' },
+    { id: 'legende', name: 'Chat légendaire', c: '#ff4fa0', l: '★' },
+  ];
+  const cardsOwned = () => CARDS.filter(c => save.cards[c.id]).length;
+  function giveCard() {
+    const missing = CARDS.filter(c => !save.cards[c.id]);
+    const card = missing.length && Math.random() < 0.75 ? pick(missing) : pick(CARDS);
+    const dup = !!save.cards[card.id];
+    save.cards[card.id] = (save.cards[card.id] || 0) + 1;
+    if (dup) save.fish += 50;
+    let extra = '';
+    if (!save.albumDone && cardsOwned() === CARDS.length) { save.albumDone = true; save.fish += 3000; extra = ' Album complet : +3 000 poissons !'; }
+    for (const m of save.missions) if (m.k === 'cards') m.prog++;
+    persist();
+    return { card, dup, extra };
+  }
+
+  // ---------- Défi d'un ami (lien ?defi=score&de=prénom) ----------
+  try {
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('defi')) {
+      save.challenge = { score: Math.max(0, parseInt(qs.get('defi'), 10) || 0), from: (qs.get('de') || 'Un ami').slice(0, 14) };
+      persist();
+      history.replaceState(null, '', location.pathname);
+    }
+  } catch {}
 
   // ---------- Son ----------
   let audio = null, muted = false;
@@ -954,6 +1206,7 @@
   let state = 'menu'; // menu | play | pause | over
   let p, segments, obstacles, fishes, items, buildings, pigeons, active, activeMax;
   let boost = 1, stepDist = 0;
+  let run = null, revives = 0, sessionPlay = 0, pauseTipShown = false, lastScore = 0;
   let speed, travel, fishCount, elapsed, cursor, segStart, sideCursor, shake;
 
   const world = new THREE.Group();
@@ -973,6 +1226,8 @@
     activeMax = {};
     for (const t of trail) { t.life = 0; t.m.visible = false; }
     boost = 1; stepDist = 0;
+    run = { jumps: 0, signs: 0, gaps: 0, powers: 0, cards: 0, combo: 0, maxCombo: 0, comboT: 0, bonus: 0, overGap: false, recordToast: false, chalDone: false };
+    revives = 0;
     speed = START_SPEED; travel = 0; fishCount = 0; elapsed = 0; shake = 0; level = 1;
     $('level').textContent = 1;
     segStart = 20; cursor = -40; sideCursor = 20;
@@ -1031,8 +1286,8 @@
     fishes.push(f);
     return f;
   }
-  function addPower(lane, z) {
-    const type = pick(['magnet', 'magnet', 'shield', 'jump', 'double', 'double', 'jetpack']);
+  function addPower(lane, z, forced) {
+    const type = forced || pick(['magnet', 'magnet', 'shield', 'jump', 'double', 'double', 'jetpack']);
     const m = makePower(type);
     m.position.set(lane * LANE_W, 0.9, z);
     world.add(m);
@@ -1051,7 +1306,8 @@
     }
     const free = pick([-1, 0, 1].filter(l => !lanes.includes(l)));
     const r = Math.random();
-    if (t > 4 && r < 0.13) addPower(free, z);
+    if (t > 20 && r < 0.02) addPower(free, z, 'card');
+    else if (t > 4 && r < 0.13) addPower(free, z);
     else if (r < 0.65) for (let i = 0; i < 6; i++) addFish(free, z + 6 - i * 1.6, 0.6);
   }
 
@@ -1125,7 +1381,7 @@
   // ---------- Actions ----------
   function jump() {
     if (state !== 'play' || p.dead) return;
-    if (p.grounded) { p.vy = active.jump > 0 ? SUPER_JUMP_V : JUMP_V; p.grounded = false; p.slide = 0; sfx.jump(); }
+    if (p.grounded) { p.vy = active.jump > 0 ? SUPER_JUMP_V : JUMP_V; p.grounded = false; p.slide = 0; sfx.jump(); run.jumps++; }
   }
   function slide() {
     if (state !== 'play' || p.dead) return;
@@ -1138,7 +1394,7 @@
     if (n !== p.lane) { p.lane = n; sfx.lane(); }
   }
 
-  const currentScore = () => Math.floor(travel) + fishCount * 10;
+  const currentScore = () => Math.floor((travel + fishCount * 10 + (run ? run.bonus : 0)) * save.mult);
 
   function activate(k, dur) {
     active[k] = dur; activeMax[k] = dur;
@@ -1159,13 +1415,13 @@
   function hit(o) {
     if (p.invuln > 0 || p.dead) return;
     if (active.shield > 0) {
-      active.shield = 0; p.invuln = 1.2; sfx.shield(); shake = 0.2;
+      active.shield = 0; p.invuln = 1.2; sfx.shield(); shake = 0.2; run.combo = 0;
       if (o) o.dead = true;
       renderPowers();
       return;
     }
     if (active.yarn > 0) {
-      active.yarn = 0; p.invuln = 1.5; sfx.shield(); shake = 0.25;
+      active.yarn = 0; p.invuln = 1.5; sfx.shield(); shake = 0.25; run.combo = 0;
       if (o) o.dead = true;
       renderPowers();
       return;
@@ -1175,22 +1431,80 @@
   function die() {
     if (p.dead) return;
     p.dead = true; sfx.hit(); shake = 0.4;
+    setTimeout(offerRevive, 900);
+  }
+
+  // Seconde chance : payée en poissons, de plus en plus chère (100, 200, 400).
+  let reviveTimer = null;
+  const reviveCost = () => 100 * 2 ** revives;
+  function offerRevive() {
+    if (state !== 'play') return;
+    if (revives >= 3 || save.fish + fishCount < reviveCost()) { finishRun(); return; }
+    state = 'revive';
+    $('reviveYes').innerHTML = `Continuer · ${FISH_SVG} ${reviveCost()}`;
+    $('reviveScreen').hidden = false;
+    const bar = $('reviveBar');
+    bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run');
+    clearTimeout(reviveTimer);
+    reviveTimer = setTimeout(declineRevive, 5000);
+    $('reviveYes').focus();
+  }
+  function declineRevive() {
+    if (state !== 'revive') return;
+    clearTimeout(reviveTimer);
+    $('reviveScreen').hidden = true;
+    finishRun();
+  }
+  function revive() {
+    if (state !== 'revive') return;
+    clearTimeout(reviveTimer);
+    let cost = reviveCost();
+    const fromBank = Math.min(save.fish, cost);
+    save.fish -= fromBank; cost -= fromBank; fishCount -= cost;
+    persist();
+    revives++;
+    $('reviveScreen').hidden = true;
+    for (const o of obstacles) { const oz = o.z + travel; if (oz > -40 && oz < 4) o.dead = true; }
+    p.dead = false; p.deadT = 0; p.falling = false; p.vy = 0; p.y = Math.max(p.y, 0.3);
+    cat.rotation.x = 0;
+    p.hover = true; active.jetpack = 1.4; activeMax.jetpack = 1.4;
+    p.invuln = 2.5;
+    state = 'play'; last = performance.now();
+    toast('C\'est reparti !');
+  }
+
+  function finishRun() {
+    state = 'over';
     const score = currentScore();
     const isBest = score > best;
     if (isBest) best = score;
     save.best = best;
     save.fish += fishCount;
+    lastScore = score;
+    const done = [];
+    for (const m of save.missions) {
+      if (MISSIONS[m.k].cum) { if (m.k === 'fishTotal') m.prog += fishCount; if (m.k === 'runs') m.prog += 1; }
+      else m.prog = Math.max(m.prog, runStat(m.k));
+    }
+    checkCumMissions(done);
+    if (run.chalDone) save.challenge = null;
     persist();
-    setTimeout(() => {
-      state = 'over';
-      $('finalScore').textContent = score;
-      $('finalBest').textContent = best;
-      $('newBest').hidden = !isBest;
-      $('overTitle').textContent = isBest ? 'Bravo !' : 'Aïe !';
-      $('earned').innerHTML = `+${fishCount} ${FISH_SVG} · total ${save.fish.toLocaleString('fr-FR')}`;
-      $('overScreen').hidden = false;
-      $('againBtn').focus();
-    }, 900);
+    $('finalScore').textContent = fmt(score);
+    $('finalBest').textContent = fmt(best);
+    $('newBest').hidden = !isBest;
+    $('overTitle').textContent = isBest ? 'Bravo !' : run.chalDone ? 'Défi relevé !' : 'Aïe !';
+    $('earned').innerHTML = `+${fishCount} ${FISH_SVG} · total ${fmt(save.fish)}`;
+    const gap = best - score;
+    $('almost').hidden = isBest || !best || gap > best * 0.25;
+    $('almost').textContent = `Si près ! Plus que ${fmt(gap)} points pour battre ton record.`;
+    if (save.challenge) done.push(`Défi de ${save.challenge.from} : encore ${fmt(save.challenge.score - score)} points à faire`);
+    $('overList').innerHTML = done.map(d => `<li>${d}</li>`).join('');
+    $('playerName').value = save.name || '';
+    $('defiMsg').textContent = '';
+    $('pauseTip').hidden = !(sessionPlay > 1800 && !pauseTipShown);
+    if (!$('pauseTip').hidden) pauseTipShown = true;
+    $('overScreen').hidden = false;
+    $('againBtn').focus();
   }
 
   // ---------- Bonus affichés ----------
@@ -1211,15 +1525,28 @@
   }
 
   // ---------- Niveaux ----------
-  let level = 1, levelTimer = null;
+  let level = 1;
   function showLevel() {
     $('level').textContent = level;
-    const el = $('levelToast');
-    el.innerHTML = `Niveau ${level}<small>Plus vite !</small>`;
-    el.classList.remove('out');
+    toast(`Niveau ${level}`, 'Plus vite !');
     beep(660, 0.1, 'square', 0.05); beep(880, 0.16, 'square', 0.05, 0, 0.1);
-    clearTimeout(levelTimer);
-    levelTimer = setTimeout(() => el.classList.add('out'), 1600);
+  }
+  // Les messages s'affichent l'un après l'autre.
+  const toasts = [];
+  let toastBusy = false;
+  function toast(title, sub = '', ms = 1700) {
+    toasts.push({ title, sub, ms });
+    if (!toastBusy) nextToast();
+  }
+  function nextToast() {
+    const tt = toasts.shift();
+    if (!tt) { toastBusy = false; return; }
+    toastBusy = true;
+    const el = $('levelToast');
+    el.innerHTML = `${tt.title}${tt.sub ? `<small>${tt.sub}</small>` : ''}`;
+    el.style.top = state === 'play' ? '' : '12%';
+    el.classList.remove('out');
+    setTimeout(() => { el.classList.add('out'); setTimeout(nextToast, 350); }, tt.ms);
   }
 
   // ---------- Mise à jour ----------
@@ -1230,7 +1557,7 @@
       const lvl = 1 + Math.floor(elapsed / LEVEL_TIME);
       if (lvl !== level) { level = lvl; showLevel(); }
       // Le jetpack fait filer le chat 5 fois plus vite.
-      boost += ((active.jetpack > 0 ? JET_BOOST : 1) - boost) * Math.min(1, dt * 4);
+      boost += ((active.jetpack > 0 && !p.hover ? JET_BOOST : 1) - boost) * Math.min(1, dt * 4);
       stepDist = speed * boost * dt;
       travel += stepDist;
       for (const k in active) if (k !== 'shield' || active[k] > 0) active[k] = Math.max(0, active[k] - dt);
@@ -1253,7 +1580,7 @@
       p.y += (5.5 - p.y) * Math.min(1, dt * 3);
       p.vy = 0; p.grounded = false; p.falling = false; p.slide = 0;
     } else {
-      if (p.flying) { p.flying = false; p.invuln = Math.max(p.invuln, 1.5); }
+      if (p.flying) { p.flying = false; p.hover = false; p.invuln = Math.max(p.invuln, 1.5); }
       p.vy -= GRAVITY * dt;
       p.y += p.vy * dt;
       if (!p.falling && onRoof && p.y <= 0) {
@@ -1269,6 +1596,21 @@
     if (p.falling && onRoof && p.y < -0.2) die();
     if (p.y < -8 && !p.dead) die();
     p.run += dt * speed * 0.9;
+    sessionPlay += dt;
+
+    // Trous franchis, obstacles passés (combo)
+    if (!onRoof && !p.flying && !p.falling) run.overGap = true;
+    else if (onRoof && run.overGap && !p.dead) { run.overGap = false; run.gaps++; }
+    run.comboT -= dt;
+    if (run.comboT <= 0) run.combo = 0;
+    for (const o of obstacles) {
+      if (o.passed || o.z + travel < 0.6) continue;
+      o.passed = true;
+      if (o.dead || p.dead) continue;
+      run.combo++; run.maxCombo = Math.max(run.maxCombo, run.combo); run.comboT = 2.5; run.bonus += run.combo;
+      if (run.combo % 25 === 0) toast(`Combo ${run.combo} !`, 'Bonus de points');
+      if (o.type === 'high' && Math.abs(o.lane * LANE_W - p.x) < 1 && p.slide > 0) run.signs++;
+    }
 
     if (!p.dead) {
       const sliding = p.slide > 0 && p.grounded;
@@ -1305,7 +1647,12 @@
         if (it.got) continue;
         const iz = it.z + travel;
         if (iz > -0.9 && iz < 0.9 + stepDist && Math.abs(it.x - p.x) < 0.9 && Math.abs(it.y - (p.y + 0.6)) < 1.1) {
-          it.got = true; activate(it.type, POWERS[it.type].dur); sfx.power();
+          it.got = true; sfx.power();
+          if (it.type === 'card') {
+            const g = giveCard(); run.cards++;
+            toast(g.dup ? 'Carte en double' : 'Nouvelle carte !', `${g.card.name}${g.dup ? ' · +50 poissons' : ''}${g.extra}`, 2400);
+            checkCumMissions();
+          } else { run.powers++; activate(it.type, POWERS[it.type].dur); }
         }
       }
     }
@@ -1323,8 +1670,19 @@
     shake = Math.max(0, shake - dt);
     renderPowers();
 
-    $('score').textContent = currentScore();
+    const sc = currentScore();
+    $('score').textContent = fmt(sc);
     $('fish').textContent = fishCount;
+    $('comboChip').hidden = run.combo < 3;
+    $('combo').textContent = run.combo;
+    if (!p.dead) {
+      checkRunMissions();
+      if (!run.recordToast && best > 0 && sc > best) { run.recordToast = true; toast('Nouveau record !', 'Continue comme ça'); }
+      if (save.challenge && !run.chalDone && sc > save.challenge.score) {
+        run.chalDone = true; $('chalChip').classList.add('combo');
+        toast('Défi réussi !', `Tu as battu ${save.challenge.from}`);
+      }
+    }
   }
 
   // ---------- Décor vivant (oiseaux, ciel) ----------
@@ -1468,7 +1826,13 @@
         if (!save.boosters[b.id]) save.armed[b.id] = false;
       }
     }
+    for (const m of save.missions) m.fresh = false;
     persist();
+    $('multi').textContent = '×' + save.mult;
+    $('chalChip').hidden = !save.challenge;
+    $('chalChip').classList.remove('combo');
+    if (save.challenge) $('chal').textContent = fmt(save.challenge.score);
+    $('reviveScreen').hidden = true; $('chestScreen').hidden = true; $('albumScreen').hidden = true;
     $('hudLeft').hidden = false; $('pause').hidden = false;
     $('startScreen').hidden = true; $('shopScreen').hidden = true; $('overScreen').hidden = true; $('pauseScreen').hidden = true;
     $('hint').hidden = false;
@@ -1509,6 +1873,7 @@
     const c = e.code;
     if (['Space', 'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS', 'ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD'].includes(c)) e.preventDefault();
     if (state === 'menu') { if (c === 'Space' && !$('startScreen').hidden) start(); return; }
+    if (state === 'revive') { if (c === 'Space' || c === 'Enter') revive(); else if (c === 'Escape') declineRevive(); return; }
     if (e.repeat) return;
     if (c === 'Space' || c === 'ArrowUp' || c === 'KeyW') jump();
     else if (c === 'ArrowDown' || c === 'KeyS') slide();
@@ -1539,8 +1904,88 @@
     $('hudLeft').hidden = true; $('pause').hidden = true; $('hint').hidden = true;
     $('overScreen').hidden = true; $('pauseScreen').hidden = true; $('shopScreen').hidden = true;
     $('startScreen').hidden = false;
-    refreshWallet(); renderBoostRow();
+    $('chestScreen').hidden = true; $('albumScreen').hidden = true; $('reviveScreen').hidden = true;
+    refreshWallet(); renderBoostRow(); renderMissions();
+    $('chestBtn').hidden = !chestReady();
+    $('chalBanner').hidden = !save.challenge;
+    if (save.challenge) $('chalBanner').textContent = `Défi de ${save.challenge.from} : bats ${fmt(save.challenge.score)} points !`;
   }
+  function renderMissions() {
+    ensureMissions();
+    $('multMenu').textContent = '×' + save.mult;
+    $('missionList').innerHTML = save.missions.map(m => {
+      const d = MISSIONS[m.k];
+      const prog = d.cum ? `${fmt(Math.min(m.prog, m.n))}/${fmt(m.n)}` : m.prog ? `record ${fmt(Math.min(m.prog, m.n))}/${fmt(m.n)}` : `0/${fmt(m.n)}`;
+      return `<li><span>${d.t.replace('{n}', fmt(m.n))}</span><span class="mp">${prog}</span></li>`;
+    }).join('');
+    const left = 3 - ((save.mDone || 0) % 3);
+    $('missionNote').textContent = `+${missionReward()} poissons par mission · encore ${left} pour passer à ×${Math.min(30, save.mult + 1)}`;
+  }
+
+  // ---------- Coffre du jour ----------
+  function openChestScreen() {
+    $('startScreen').hidden = true; $('chestScreen').hidden = false;
+    const ch = $('chest'); ch.className = 'chest shake';
+    $('chestReward').hidden = true; $('chestOpen').hidden = false; $('chestClose').hidden = true;
+    renderDays(save.daily.last === dayKey(new Date(Date.now() - 864e5)) ? save.daily.streak : 0, false);
+    $('chestOpen').focus();
+  }
+  function renderDays(streak, opened) {
+    const cur = opened ? (streak - 1) % 7 : streak % 7;
+    $('days').innerHTML = DAILY.map((d, i) =>
+      `<div class="day${i < cur || (opened && i === cur) ? ' done' : ''}${i === cur ? ' today' : ''}">J${i + 1}<br>${d.fish}</div>`).join('');
+  }
+  function openChest() {
+    if (!chestReady()) return;
+    const yesterday = dayKey(new Date(Date.now() - 864e5));
+    const streak = save.daily.last === yesterday ? save.daily.streak + 1 : 1;
+    const rw = DAILY[(streak - 1) % 7];
+    save.fish += rw.fish;
+    const lines = [`+${rw.fish} poissons`];
+    if (rw.boost) { save.boosters[rw.boost]++; lines.push(`+1 ${BOOSTERS.find(b => b.id === rw.boost).name}`); }
+    if (rw.card) { const g = giveCard(); lines.push(`Carte : ${g.card.name}`); }
+    save.daily = { last: today(), streak };
+    persist();
+    $('chest').className = 'chest open';
+    $('chestReward').innerHTML = lines.map(l => `<span>${l}</span>`).join('');
+    $('chestReward').hidden = false;
+    $('chestOpen').hidden = true; $('chestClose').hidden = false;
+    $('chestNote').textContent = `Série : ${streak} jour${streak > 1 ? 's' : ''} de suite. Reviens demain !`;
+    renderDays(streak, true);
+    sfx.power();
+    $('chestClose').focus();
+  }
+  $('chestBtn').addEventListener('click', openChestScreen);
+  $('chestOpen').addEventListener('click', openChest);
+  $('chestClose').addEventListener('click', showMenu);
+
+  // ---------- Album ----------
+  function openAlbum() {
+    $('startScreen').hidden = true; $('albumScreen').hidden = false;
+    $('albumCount').textContent = `${cardsOwned()} / ${CARDS.length}`;
+    $('album').innerHTML = CARDS.map(c => {
+      const n = save.cards[c.id] || 0;
+      return `<div class="ccard${n ? '' : ' locked'}" style="--c:${c.c}"><span class="art">${n ? c.l : '?'}</span>` +
+        `<span>${n ? c.name : '???'}</span>${n > 1 ? `<small>×${n}</small>` : ''}</div>`;
+    }).join('');
+  }
+  $('albumBtn').addEventListener('click', openAlbum);
+  $('albumBack').addEventListener('click', showMenu);
+
+  // ---------- Seconde chance et défi ----------
+  $('reviveYes').addEventListener('click', revive);
+  $('reviveNo').addEventListener('click', declineRevive);
+  $('playerName').addEventListener('input', e => { save.name = e.target.value.trim().slice(0, 14); persist(); });
+  $('defiBtn').addEventListener('click', async () => {
+    const name = save.name || 'Un ami';
+    const url = `${location.origin}${location.pathname}?defi=${lastScore}&de=${encodeURIComponent(name)}`;
+    const text = `${name} te défie à Ninja des Toits : bats ${fmt(lastScore)} points !`;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Ninja des Toits', text, url }); $('defiMsg').textContent = 'Défi envoyé !'; return; }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(`${text} ${url}`); $('defiMsg').textContent = 'Lien copié ! Colle-le dans un message.'; }
+    catch { $('defiMsg').textContent = url; }
+  });
   $('boostRow').addEventListener('click', e => {
     const btn = e.target.closest('.boost-toggle');
     if (!btn || btn.disabled) return;
@@ -1628,11 +2073,7 @@
   showMenu();
   // Le message attend que la page soit affichée, pour ne pas disparaître pendant le chargement.
   if (welcomeGift) window.addEventListener('load', () => requestAnimationFrame(() => setTimeout(() => {
-    const el = $('levelToast');
-    el.innerHTML = `Cadeau de bienvenue<small>+500 poissons pour ta boutique !</small>`;
-    el.style.top = '12%';
-    el.classList.remove('out');
-    setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.style.top = ''; }, 500); }, 5000);
+    toast('Cadeau de bienvenue', '+500 poissons pour ta boutique !', 5000);
   }, 400)));
 })();
 </script>
