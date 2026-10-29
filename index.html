@@ -70,7 +70,7 @@
 
   .level {
     position: absolute; left: 0; right: 0; top: 34%;
-    text-align: center; pointer-events: none;
+    text-align: center; pointer-events: none; z-index: 5;
     font-family: var(--display); font-size: calc(30 * var(--u)); color: var(--gold);
     text-shadow: 0 calc(2 * var(--u)) calc(10 * var(--u)) rgba(0,0,0,0.55);
     transition: opacity 0.4s, transform 0.4s;
@@ -916,6 +916,9 @@
   save.boosters = Object.assign({ jetpack: 0, yarn: 0, magnet: 0, double: 0 }, save.boosters);
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   let best = save.best;
+  // Cadeau de bienvenue : 500 poissons, une seule fois par appareil.
+  const welcomeGift = !save.gift;
+  if (welcomeGift) { save.fish += 500; save.gift = true; persist(); }
 
   const BOOSTERS = [
     { id: 'jetpack', name: 'Jetpack', desc: 'Vole 7 s au-dessus des toits dès le départ, en ramassant les poissons du ciel.', price: 250, color: '#ff7a3a', dur: 7 },
@@ -1610,5 +1613,13 @@
   });
 
   showMenu();
+  // Le message attend que la page soit affichée, pour ne pas disparaître pendant le chargement.
+  if (welcomeGift) window.addEventListener('load', () => requestAnimationFrame(() => setTimeout(() => {
+    const el = $('levelToast');
+    el.innerHTML = `Cadeau de bienvenue<small>+500 poissons pour ta boutique !</small>`;
+    el.style.top = '12%';
+    el.classList.remove('out');
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.style.top = ''; }, 500); }, 5000);
+  }, 400)));
 })();
 </script>
