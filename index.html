@@ -578,7 +578,7 @@
   // ---------- Réglages ----------
   const LANE_W = 2.2, ROOF_W = LANE_W * 3 + 2.4;
   const GRAVITY = 30, JUMP_V = 10, SUPER_JUMP_V = 15, SLIDE_TIME = 0.7;
-  const START_SPEED = 13, MAX_SPEED = 44, LEVEL_TIME = 20;
+  const START_SPEED = 14, MAX_SPEED = 46, LEVEL_TIME = 20;
   const SUN_DIR = new THREE.Vector3(0.35, 0.16, -1).normalize();
   const POWERS = {
     magnet: { label: 'Aimant', dur: 9, color: '#e8483b' },
@@ -1164,7 +1164,25 @@
     egg: new THREE.SphereGeometry(0.4, 14, 10),
     warn: new THREE.RingGeometry(0.35, 0.55, 24),
   });
-  const KIND = { low: 'low', egg: 'low', rival: 'low', high: 'high', laundry: 'high', tall: 'tall', tram: 'tall' };
+  const KIND = { low: 'low', egg: 'low', rival: 'low', barrel: 'low', high: 'high', laundry: 'high', tall: 'tall', tram: 'tall', gate: 'gate', glass: 'glass', bounce: 'pad' };
+  Object.assign(mat, {
+    hazard: std(0xffd23a, { roughness: 0.5 }),
+    hazardDark: std(0x1a1a1a, { roughness: 0.5 }),
+    barrel: std(0x8a4a2a, { roughness: 0.8 }),
+    hoop: std(0x3e3a48, { metalness: 0.7, roughness: 0.4 }),
+    glass: std(0x8ad8ff, { transparent: true, opacity: 0.55, roughness: 0.05, metalness: 0.3, emissive: 0x1a4a6a }),
+    glassCracked: std(0xe8f4ff, { transparent: true, opacity: 0.8, roughness: 0.6 }),
+    pad: std(0xe8483b, { roughness: 0.4 }),
+    padTop: std(0xffffff, { roughness: 0.4 }),
+  });
+  Object.assign(geo, {
+    gateBar: new THREE.BoxGeometry(2.0, 0.24, 0.24),
+    barrel: new THREE.CylinderGeometry(0.42, 0.42, 1.1, 18),
+    hoop: new THREE.TorusGeometry(0.43, 0.04, 6, 20),
+    glass: new THREE.BoxGeometry(1.7, 0.06, 2.4),
+    pad: new THREE.CylinderGeometry(0.6, 0.7, 0.22, 20),
+    padTop: new THREE.CylinderGeometry(0.5, 0.5, 0.05, 20),
+  });
   function makeObstacle(type) {
     const g = new THREE.Group();
     if (type === 'low') {
@@ -1201,6 +1219,27 @@
       }
       const tl = mesh(geo.thin, mat.rivalFur, -0.55, 0.75, 0); tl.scale.y = 0.6; tl.rotation.z = 0.6; g.add(tl);
       g.userData.legs = legs;
+    } else if (type === 'gate') {
+      // Barrière qui monte et descend : sauter quand elle est basse, glisser quand elle est haute
+      for (const sd of [-1, 1]) g.add(mesh(geo.pole, mat.darkMetal, sd * 1.0, 1.0, 0));
+      const bar = new THREE.Group();
+      for (let i = 0; i < 5; i++) { const piece = mesh(geo.unit, i % 2 ? mat.hazardDark : mat.hazard, -0.8 + i * 0.4, 0, 0); piece.scale.set(0.4, 0.24, 0.24); bar.add(piece); }
+      g.add(bar); g.userData.bar = bar;
+    } else if (type === 'barrel') {
+      // Tonneau qui roule vers le chat : il faut sauter
+      const roll = new THREE.Group(); roll.position.y = 0.42; g.add(roll);
+      const b = new THREE.Mesh(geo.barrel, mat.barrel); b.rotation.z = Math.PI / 2; roll.add(b);
+      for (const x of [-0.35, 0.35]) { const h = mesh(geo.hoop, mat.hoop, x, 0, 0); h.rotation.y = Math.PI / 2; roll.add(h); }
+      g.userData.roll = roll;
+    } else if (type === 'glass') {
+      // Verrière fragile : marcher dessus fait trébucher
+      const gl = mesh(geo.glass, mat.glass, 0, 0.03, 0); g.add(gl); g.userData.glass = gl;
+      for (const sd of [-1, 1]) { const fr = mesh(geo.unit, mat.darkMetal, sd * 0.85, 0.05, 0); fr.scale.set(0.06, 0.08, 2.4); g.add(fr); }
+      const mid = mesh(geo.unit, mat.darkMetal, 0, 0.05, 0); mid.scale.set(1.7, 0.08, 0.06); g.add(mid);
+    } else if (type === 'bounce') {
+      // Trampoline : le chat rebondit très haut
+      g.add(mesh(geo.pad, mat.pad, 0, 0.11, 0));
+      g.add(mesh(geo.padTop, mat.padTop, 0, 0.24, 0));
     } else if (type === 'egg') {
       // Œuf du pigeon géant : une cible rouge montre où il va tomber
       const e = mesh(geo.egg, mat.egg, 0, 7, 0); e.scale.set(0.8, 1.05, 0.8); g.add(e); g.userData.egg = e;
@@ -1742,14 +1781,26 @@
       const o = addObstacle('rival', 0, z); o.x = 0; o.phase = rand(0, 6);
       return;
     }
-    const types = t < 6 ? ['low'] : t < 14 ? ['low', 'high'] : t < 22 ? ['low', 'high', 'tall', 'laundry'] : ['low', 'high', 'tall', 'laundry', 'tall'];
-    const n = Math.random() < Math.min(0.75, 0.25 + t * 0.008) ? 2 : 1;
+    if (t > 20 && Math.random() < 0.22) return spawnPattern(z, t);
+    if (t > 6 && Math.random() < 0.07) {
+      // Trampoline avec une arche de poissons au-dessus des obstacles suivants
+      const l = pick([-1, 0, 1]);
+      addObstacle('bounce', l, z);
+      for (let i = 0; i < 9; i++) addFish(l, z - 2 - i * 2.2, 1 + 3.8 * Math.sin(Math.PI * i / 8));
+      return;
+    }
+    const types = t < 6 ? ['low'] : t < 10 ? ['low', 'high', 'glass'] : t < 16 ? ['low', 'high', 'glass', 'barrel'] :
+      t < 22 ? ['low', 'high', 'tall', 'laundry', 'glass', 'barrel', 'gate'] : ['low', 'high', 'tall', 'laundry', 'tall', 'glass', 'barrel', 'gate'];
+    const n = Math.random() < Math.min(0.8, 0.3 + t * 0.009) ? 2 : 1;
     const lanes = [-1, 0, 1].sort(() => Math.random() - 0.5).slice(0, n);
     for (const lane of lanes) {
       let type = pick(types);
       if (type === 'tall' && t > 25 && Math.random() < 0.35 && laneClear(lane, z, 70)) type = 'tram';
+      if (type === 'barrel' && !laneClear(lane, z, 40)) type = 'low';
       const o = addObstacle(type, lane, z);
       if (type === 'tram') o.vz = 7 + speed * 0.25;
+      if (type === 'barrel') o.vz = 5 + speed * 0.2;
+      if (type === 'gate') o.phase = rand(0, 6);
       if (type === 'low' && Math.random() < 0.4) for (let i = 0; i < 5; i++) addFish(lane, z + 3 - i * 1.5, 0.7 + 1.3 * Math.sin(Math.PI * i / 4));
     }
     const free = pick([-1, 0, 1].filter(l => !lanes.includes(l)));
@@ -1758,6 +1809,36 @@
     else if (t > 20 && r < 0.07) addPower(free, z, 'card');
     else if (t > 4 && r < 0.13) addPower(free, z);
     else if (r < 0.65) for (let i = 0; i < 6; i++) addFish(free, z + 6 - i * 1.6, 0.6);
+  }
+
+  // Enchaînements d'obstacles. Renvoie la longueur occupée.
+  function spawnPattern(z, t) {
+    const kind = pick(['tunnel', 'stairs', 'zigzag']);
+    const d = Math.max(9, speed * 0.75);
+    if (kind === 'tunnel') {
+      // Couloir : murs à gauche et à droite, saut puis glissade au milieu
+      for (let i = 0; i < 3; i++) { addObstacle('tall', -1, z - i * d * 0.6); addObstacle('tall', 1, z - i * d * 0.6); }
+      addObstacle('low', 0, z); addObstacle('high', 0, z - d * 1.2);
+      for (let i = 0; i < 8; i++) addFish(0, z + 2 - i * 2, i < 3 ? 0.7 + 1.3 * Math.sin(Math.PI * i / 2) : 0.6);
+      return d * 1.2;
+    }
+    if (kind === 'stairs') {
+      // Toute la largeur : sauter, puis glisser
+      for (const l of [-1, 0, 1]) addObstacle('low', l, z);
+      for (const l of [-1, 0, 1]) addObstacle('high', l, z - d);
+      const l = pick([-1, 0, 1]);
+      for (let i = 0; i < 5; i++) addFish(l, z + 3 - i * 1.5, 0.7 + 1.3 * Math.sin(Math.PI * i / 4));
+      return d;
+    }
+    // Zigzag : la voie libre change à chaque rangée
+    let free = pick([-1, 0, 1]);
+    for (let i = 0; i < 3; i++) {
+      const zz = z - i * d;
+      for (const l of [-1, 0, 1]) if (l !== free) addObstacle(pick(['tall', 'low', 'glass']), l, zz);
+      addFish(free, zz + 1, 0.6); addFish(free, zz - 1, 0.6);
+      free = free === 0 ? pick([-1, 1]) : 0;
+    }
+    return d * 2;
   }
 
   function addBuilding(side, z, depth) {
@@ -1785,7 +1866,7 @@
   function generate() {
     while (cursor + travel > -150) {
       const roomForGap = segStart - cursor > 12;
-      if (elapsed > 12 && roomForGap && Math.random() < Math.min(0.3, 0.12 + elapsed * 0.002)) {
+      if (elapsed > 10 && roomForGap && Math.random() < Math.min(0.32, 0.13 + elapsed * 0.0025)) {
         const gap = rand(3, 4) + Math.min(1.5, elapsed / 60);
         closeSegment(cursor);
         const gl = pick([-1, 0, 1]);
@@ -1793,7 +1874,7 @@
         segStart = cursor - gap;
         cursor = segStart - Math.max(9, speed * 0.6);
       } else {
-        if (segStart - cursor > 4) spawnRow(cursor);
+        if (segStart - cursor > 4) cursor -= spawnRow(cursor) || 0;
         // L'écart en secondes entre deux rangées d'obstacles diminue avec le temps.
         cursor -= speed * Math.max(0.55, 1.15 - elapsed * 0.006) * rand(0.9, 1.2);
       }
@@ -2037,7 +2118,7 @@
     elapsed += dt;
     if (run.tuto >= 0) elapsed = Math.min(elapsed, 2);
     if (!p.dead) {
-      speed = Math.min(MAX_SPEED, START_SPEED + elapsed * 0.28);
+      speed = Math.min(MAX_SPEED, START_SPEED + elapsed * 0.3);
       const lvl = 1 + Math.floor(elapsed / LEVEL_TIME);
       if (lvl !== level) { level = lvl; showLevel(); }
       // Le jetpack fait filer le chat 5 fois plus vite.
@@ -2066,6 +2147,12 @@
         const e = o.mesh.userData.egg; e.position.y = Math.max(0.42, o.ey);
         o.mesh.userData.warn.scale.setScalar(1 + Math.sin(t * 12) * 0.15);
         if (o.ey <= 0.42) { o.landed = true; o.mesh.userData.warn.visible = false; play(tt => noise(tt, 0.2, 0.2, 'lowpass', 500, sfxBus, 100)); }
+      } else if (o.type === 'barrel') {
+        o.z += o.vz * dt; o.mesh.position.z = o.z;
+        o.mesh.userData.roll.rotation.x += dt * (o.vz + speed) / 0.42;
+      } else if (o.type === 'gate') {
+        o.by = 0.55 + 0.85 * (0.5 + 0.5 * Math.sin(t * 1.7 + o.phase));
+        o.mesh.userData.bar.position.y = o.by;
       } else if (o.type === 'laundry') {
         o.mesh.userData.clothes.forEach((c, i) => { c.rotation.x = Math.sin(t * 3 + i) * 0.25; });
       }
@@ -2113,6 +2200,7 @@
     if (run.comboT <= 0) run.combo = 0;
     for (const o of obstacles) {
       if (o.passed || o.z + travel < 0.6) continue;
+      if (o.type === 'bounce') { o.passed = true; continue; }
       o.passed = true;
       if (o.dead || p.dead) continue;
       run.combo++; run.maxCombo = Math.max(run.maxCombo, run.combo); run.comboT = 2.5; run.bonus += run.combo;
@@ -2125,6 +2213,28 @@
       const topY = p.y + (sliding ? 0.65 : 1.35);
       for (const o of obstacles) {
         if (o.dead || o.grazed || p.flying || (o.type === 'egg' && !o.landed)) continue;
+        if (o.type === 'gate' || o.type === 'glass' || o.type === 'bounce') {
+          const oz2 = o.z + travel, dx = Math.abs(o.lane * LANE_W - p.x);
+          if (o.type === 'gate') {
+            if (dx > 1.2 || Math.abs(oz2) > 0.5) continue;
+            const bottom = p.y, top = topY, b0 = o.by - 0.12, b1 = o.by + 0.12;
+            const overlap = Math.min(top, b1) - Math.max(bottom, b0);
+            if (overlap <= 0) continue;
+            if (overlap < 0.15) graze(o); else hit(o);
+            break;
+          }
+          if (dx > 0.9 || Math.abs(oz2) > 1.3 || p.y > 0.25) continue;
+          if (o.type === 'bounce') {
+            o.grazed = true; p.vy = 17; p.grounded = false; p.flip = true; p.air = 0; p.slide = 0;
+            play(tt => tone(220, tt, 0.35, 'sine', 0.12, sfxBus, 0.005, 660));
+            continue;
+          }
+          // Verrière : elle craque et le chat trébuche
+          o.mesh.userData.glass.material = mat.glassCracked;
+          play(tt => noise(tt, 0.25, 0.18, 'highpass', 3000, sfxBus));
+          graze(o);
+          break;
+        }
         const kind = KIND[o.type];
         const oz = o.z + travel, ox = o.x ?? o.lane * LANE_W;
         const half = o.type === 'rival' ? 0.5 : kind === 'low' ? 0.65 : 0.9;
