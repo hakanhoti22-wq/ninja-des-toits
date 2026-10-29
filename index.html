@@ -118,13 +118,79 @@
   }
   .big-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #9e2a20; }
   @media (prefers-reduced-motion: reduce) { .big-btn:active { transform: none; } }
+
+  /* Menu et boutique : panneau en bas (portrait) ou à droite (paysage), le chat reste visible au-dessus */
+  .overlay.menu { place-items: end center; background: linear-gradient(to bottom, transparent 35%, rgba(29, 23, 48, 0.55)); }
+  .menu .panel { max-height: 62%; overflow-y: auto; margin-block: 0 calc(12px + env(safe-area-inset-bottom, 0px)); }
+  @media (min-aspect-ratio: 1/1) {
+    .overlay.menu { place-items: center end; background: linear-gradient(to right, transparent 40%, rgba(29, 23, 48, 0.55)); }
+    .menu .panel { max-height: calc(100% - 32px); margin-block: 16px; }
+  }
+  #shopScreen .panel { overflow: hidden; max-height: 58%; }
+  #skinGrid, #boostList { overflow-y: auto; min-height: 0; flex: 1 1 auto; padding: 2px; }
+  @media (min-aspect-ratio: 1/1) { #shopScreen .panel { max-height: calc(100% - 32px); } }
+  .row { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; width: 100%; }
+  .wallet {
+    display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 12px;
+    font-family: var(--display); font-size: 17px; color: var(--gold);
+    background: rgba(255, 255, 255, 0.08); font-variant-numeric: tabular-nums;
+  }
+  .wallet.muted { color: var(--ink); font-size: 14px; }
+  .fi { width: 22px; height: 13px; fill: currentColor; flex: none; }
+  .sec-title { font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; align-self: flex-start; }
+  .boost-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; }
+  .boost-toggle {
+    border: 2px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.06); color: var(--ink);
+    border-radius: 12px; padding: 6px 2px; font: 800 11px/1.2 var(--body); cursor: pointer;
+    display: grid; gap: 3px; justify-items: center; min-width: 0;
+  }
+  .boost-toggle[aria-pressed="true"] { border-color: var(--c); background: rgba(255, 255, 255, 0.18); }
+  .boost-toggle[aria-pressed="true"] .ic::after { content: "✓"; }
+  .boost-toggle:disabled { opacity: 0.4; cursor: default; }
+  .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--c); display: grid; place-items: center; color: var(--night); font-weight: 800; }
+  .ghost-btn {
+    border: 2px solid rgba(255, 247, 236, 0.5); background: transparent; color: var(--ink); border-radius: 999px;
+    padding: 11px 22px; font: 400 15px var(--display); letter-spacing: 0.04em; cursor: pointer;
+  }
+  .ghost-btn:focus-visible, .tab:focus-visible, .card:focus-visible, .buy:focus-visible, .boost-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  details.howto { width: 100%; text-align: left; font-size: 14px; display: grid; gap: 8px; }
+  details.howto summary { cursor: pointer; font-weight: 800; }
+  details.howto[open] summary { margin-bottom: 8px; }
+  .shop-head { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
+  .tabs { display: flex; gap: 6px; width: 100%; }
+  .tab { flex: 1; border: 0; border-radius: 10px; padding: 8px; background: rgba(255, 255, 255, 0.08); color: var(--ink); font: 800 14px var(--body); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--band); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; width: 100%; }
+  .card {
+    border: 2px solid transparent; background: rgba(255, 255, 255, 0.07); border-radius: 14px; padding: 8px 4px;
+    color: var(--ink); cursor: pointer; display: grid; gap: 4px; justify-items: center; text-align: center;
+    font-family: var(--body); min-width: 0;
+  }
+  .card.sel { border-color: var(--ink); background: rgba(255, 255, 255, 0.15); }
+  .card .sw { width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--rar); }
+  .card b { font-size: 12px; line-height: 1.2; }
+  .card .rar { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rar); }
+  .price { display: inline-flex; gap: 4px; align-items: center; font-weight: 800; font-size: 12px; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .price.owned { color: var(--ink); opacity: 0.75; }
+  .boost-list { display: grid; gap: 8px; width: 100%; }
+  .bcard { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.07); border-radius: 14px; padding: 10px; text-align: left; }
+  .bcard .ic { width: 36px; height: 36px; }
+  .bcard small { display: block; opacity: 0.8; font-size: 12px; line-height: 1.35; }
+  .bcard .stock { color: var(--gold); font-weight: 800; }
+  .buy {
+    border: 0; border-radius: 999px; padding: 8px 12px; background: var(--band); color: var(--ink);
+    font: 800 13px var(--body); display: inline-flex; gap: 4px; align-items: center; cursor: pointer; white-space: nowrap;
+  }
+  .buy:disabled, .big-btn:disabled { opacity: 0.45; cursor: default; }
+  .msg { min-height: 1.3em; font-weight: 800; font-size: 13px; color: var(--gold); }
+  .earned { display: inline-flex; gap: 6px; align-items: center; font-weight: 800; color: var(--gold); }
 </style>
 
 <div id="app">
   <canvas id="game"></canvas>
 
   <div class="hud">
-    <div class="left">
+    <div class="left" id="hudLeft">
       <div class="stats">
         <div class="chip"><small>Score</small><span id="score">0</span></div>
         <div class="chip"><small>Poissons</small><span id="fish">0</span></div>
@@ -134,30 +200,61 @@
     </div>
     <div class="tools">
       <button class="icon-btn" id="mute" aria-label="Couper le son">♪</button>
-      <button class="icon-btn" id="pause" aria-label="Pause">II</button>
+      <button class="icon-btn" id="pause" aria-label="Pause" hidden>II</button>
     </div>
   </div>
 
   <div class="level out" id="levelToast" aria-live="polite"></div>
   <div class="hint" id="hint" hidden>Glisse ← → pour changer de voie · ↑ sauter · ↓ glisser</div>
 
-  <div class="overlay" id="startScreen">
+  <div class="overlay menu" id="startScreen">
     <div class="panel">
       <h1>Ninja des <span>Toits</span></h1>
-      <p>Le chat ninja court sur les toits au coucher du soleil. Va le plus loin possible et attrape les poissons&nbsp;!</p>
-      <ul class="rules">
-        <li><b>Changer de voie</b> : glisse à gauche ou à droite (← →)</li>
-        <li><b>Sauter</b> : glisse vers le haut ou touche l'écran (↑, Espace)</li>
-        <li><b>Glisser</b> : glisse vers le bas (↓) sous les panneaux</li>
-      </ul>
-      <div class="bonus">
-        <div style="--c:#e8483b"><b>Aimant</b>attire les poissons</div>
-        <div style="--c:#5aa9ff"><b>Bouclier</b>protège d'un choc</div>
-        <div style="--c:#6fdc6f"><b>Super saut</b>saute très haut</div>
-        <div style="--c:#ffcf7a"><b>Poissons ×2</b>double les poissons</div>
+      <div class="row">
+        <span class="wallet" title="Tes poissons"><svg class="fi" viewBox="0 0 24 14" aria-hidden="true"><path d="M1 7c4-6.5 12-6.5 16 0-4 6.5-12 6.5-16 0z"/><path d="M16 7l7-6v12z"/></svg><span class="bank">0</span></span>
+        <span class="wallet muted" id="bestStart" hidden></span>
       </div>
+      <span class="sec-title">Boosters pour la prochaine partie</span>
+      <div class="boost-row" id="boostRow"></div>
       <button class="big-btn" id="playBtn">Jouer</button>
-      <p id="bestStart"></p>
+      <button class="ghost-btn" id="shopBtn">Boutique</button>
+      <details class="howto">
+        <summary>Comment jouer</summary>
+        <ul class="rules">
+          <li><b>Changer de voie</b> : glisse à gauche ou à droite (← →)</li>
+          <li><b>Sauter</b> : glisse vers le haut ou touche l'écran (↑, Espace)</li>
+          <li><b>Glisser</b> : glisse vers le bas (↓) sous les panneaux</li>
+          <li><b>Poissons</b> : ils te servent à acheter des skins et des boosters</li>
+        </ul>
+        <div class="bonus">
+          <div style="--c:#e8483b"><b>Aimant</b>attire les poissons</div>
+          <div style="--c:#5aa9ff"><b>Bouclier</b>protège d'un choc</div>
+          <div style="--c:#6fdc6f"><b>Super saut</b>saute très haut</div>
+          <div style="--c:#ffcf7a"><b>Poissons ×2</b>double les poissons</div>
+          <div style="--c:#ff7a3a"><b>Jetpack</b>vole au-dessus de tout</div>
+          <div style="--c:#ff7ac8"><b>Pelote de laine</b>protège d'un choc</div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="overlay menu" id="shopScreen" hidden>
+    <div class="panel">
+      <div class="shop-head">
+        <h2>Boutique</h2>
+        <span class="wallet"><svg class="fi" viewBox="0 0 24 14" aria-hidden="true"><path d="M1 7c4-6.5 12-6.5 16 0-4 6.5-12 6.5-16 0z"/><path d="M16 7l7-6v12z"/></svg><span class="bank">0</span></span>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tabSkins" aria-selected="true">Skins</button>
+        <button class="tab" role="tab" id="tabBoost" aria-selected="false">Boosters</button>
+      </div>
+      <div class="grid" id="skinGrid"></div>
+      <div class="boost-list" id="boostList" hidden></div>
+      <p class="msg" id="shopMsg" aria-live="polite"></p>
+      <div class="row">
+        <button class="big-btn" id="skinAction">Équipé</button>
+        <button class="ghost-btn" id="shopBack">Retour</button>
+      </div>
     </div>
   </div>
 
@@ -169,7 +266,9 @@
         <div><small>Record</small><strong id="finalBest">0</strong></div>
       </div>
       <p class="new-best" id="newBest" hidden>Nouveau record&nbsp;!</p>
+      <p class="earned" id="earned"></p>
       <button class="big-btn" id="againBtn">Rejouer</button>
+      <button class="ghost-btn" id="menuBtn">Menu</button>
     </div>
   </div>
 
@@ -199,6 +298,8 @@
     shield: { label: 'Bouclier', dur: 15, color: '#5aa9ff' },
     jump: { label: 'Super saut', dur: 9, color: '#6fdc6f' },
     double: { label: 'Poissons ×2', dur: 10, color: '#ffcf7a' },
+    jetpack: { label: 'Jetpack', dur: 6, color: '#ff7a3a' },
+    yarn: { label: 'Pelote de laine', dur: 30, color: '#ff7ac8' },
   };
 
   // ---------- Rendu ----------
@@ -481,6 +582,206 @@
   shadowed(catBody);
   scene.add(cat);
 
+  // ---------- Skins : 20 chats, du plus simple au plus rare ----------
+  const RARITY = {
+    c: { label: 'Commun', color: '#a8b0b8' },
+    r: { label: 'Rare', color: '#4a9eff' },
+    e: { label: 'Épique', color: '#b06cff' },
+    l: { label: 'Légendaire', color: '#ffb020' },
+    m: { label: 'Mythique', color: '#ff4fa0' },
+  };
+  const SKINS = [
+    { id: 'minuit', name: 'Minuit', r: 'c', price: 0, fur: '#34303d', band: '#e8483b', eye: '#ffcf7a' },
+    { id: 'tigre', name: 'Tigré roux', r: 'c', price: 100, fur: '#d07a30', band: '#2d6a4f', eye: '#9be36a', pattern: 'stripes' },
+    { id: 'neige', name: 'Neige', r: 'c', price: 200, fur: '#efebe5', band: '#3a7bd5', eye: '#4aa0ff' },
+    { id: 'siamois', name: 'Siamois', r: 'c', price: 350, fur: '#e6d3b3', band: '#7a3fa0', eye: '#5ab0ff' },
+    { id: 'smoking', name: 'Smoking', r: 'r', price: 500, fur: '#1c1c22', band: '#f4f4f4', eye: '#9be36a', pattern: 'tux' },
+    { id: 'calico', name: 'Calico', r: 'r', price: 700, fur: '#fbf6ee', band: '#e86a3a', eye: '#ffcf7a', pattern: 'calico' },
+    { id: 'ombre', name: "Ninja de l'ombre", r: 'r', price: 900, fur: '#1b1630', band: '#6b3aa8', eye: '#c49bff' },
+    { id: 'sakura', name: 'Sakura', r: 'r', price: 1200, fur: '#f5c4d2', band: '#ff5f8f', eye: '#ff5f8f', acc: ['flower'] },
+    { id: 'samourai', name: 'Samouraï', r: 'e', price: 1500, fur: '#6b4a2e', band: '#d4a020', eye: '#ffcf7a', acc: ['horns'], accColor: '#d4a020' },
+    { id: 'robot', name: 'Robot', r: 'e', price: 2000, fur: '#9aa4b0', band: '#30ffe0', eye: '#30ffe0', metal: 0.9, rough: 0.3 },
+    { id: 'pirate', name: 'Pirate', r: 'e', price: 2500, fur: '#8a5a3a', band: '#1a1a1a', eye: '#ffcf7a', acc: ['hat'] },
+    { id: 'lave', name: 'Lave', r: 'e', price: 3000, fur: '#2a1410', band: '#ff6a00', eye: '#ffb000', pattern: 'lava' },
+    { id: 'or', name: 'Or massif', r: 'l', price: 4000, fur: '#ffc640', band: '#b0201a', eye: '#ffffff', metal: 1, rough: 0.22, acc: ['crown'] },
+    { id: 'cristal', name: 'Cristal', r: 'l', price: 5000, fur: '#a8ecff', band: '#ffffff', eye: '#ffffff', crystal: true },
+    { id: 'dragon', name: 'Dragon', r: 'l', price: 6500, fur: '#2f8a4a', band: '#ffcf3a', eye: '#ff4a2a', acc: ['wings', 'horns'], accColor: '#1f5a30' },
+    { id: 'fantome', name: 'Fantôme', r: 'l', price: 8000, fur: '#e4ecff', band: '#7a9aff', eye: '#7af0ff', ghost: true, acc: ['halo'] },
+    { id: 'arcenciel', name: 'Arc-en-ciel', r: 'm', price: 10000, fur: '#ff4a4a', band: '#ffffff', eye: '#ffffff', fx: 'rainbow', trail: 'rainbow' },
+    { id: 'galaxie', name: 'Galaxie', r: 'm', price: 12500, fur: '#1a1440', band: '#c49bff', eye: '#ffffff', pattern: 'stars', trail: '#a070ff' },
+    { id: 'phenix', name: 'Phénix', r: 'm', price: 15000, fur: '#ff6a1a', band: '#ffd23a', eye: '#fff2a0', fx: 'fire', acc: ['wings'], accColor: '#ff8a20', trail: '#ff7a1a' },
+    { id: 'roi', name: 'Roi céleste', r: 'm', price: 20000, fur: '#fff0c8', band: '#ffc640', eye: '#7af0ff', metal: 0.6, rough: 0.3, acc: ['crown', 'halo', 'wings'], accColor: '#ffffff', trail: '#ffd860' },
+  ];
+
+  const furMeshes = [];
+  catBody.traverse(o => { if (o.material === mat.fur) furMeshes.push(o); });
+  const goldMat = std(0xffc640, { metalness: 1, roughness: 0.25 });
+  const accMat = std(0xd4a020, { metalness: 0.5, roughness: 0.4 });
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0xffe08a });
+  const wingMat = std(0xffffff, { side: THREE.DoubleSide, roughness: 0.7 });
+  const acc = {};
+  acc.crown = new THREE.Group();
+  acc.crown.add(new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.19, 0.1, 16, 1, true), goldMat));
+  const spikeGeo = new THREE.ConeGeometry(0.04, 0.12, 6);
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * Math.PI * 2;
+    acc.crown.add(mesh(spikeGeo, goldMat, Math.cos(a) * 0.17, 0.1, Math.sin(a) * 0.17));
+  }
+  acc.crown.position.y = 0.3;
+  acc.halo = mesh(new THREE.TorusGeometry(0.22, 0.03, 8, 28), glowMat, 0, 0.55, 0);
+  acc.halo.rotation.x = Math.PI / 2;
+  acc.horns = new THREE.Group();
+  for (const sd of [-1, 1]) {
+    const h = mesh(new THREE.ConeGeometry(0.05, 0.32, 8), accMat, sd * 0.17, 0.3, 0.02);
+    h.rotation.z = -sd * 0.55;
+    acc.horns.add(h);
+  }
+  acc.hat = new THREE.Group();
+  const hatMat = std(0x1a1a1a);
+  acc.hat.add(new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.03, 20), hatMat));
+  acc.hat.add(mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.24, 16), hatMat, 0, 0.13, 0));
+  acc.hat.add(mesh(new THREE.CylinderGeometry(0.225, 0.225, 0.05, 16), goldMat, 0, 0.04, 0));
+  acc.hat.position.y = 0.26;
+  acc.flower = new THREE.Group();
+  const petalMat = std(0xff8fb4), petalGeo = new THREE.SphereGeometry(0.055, 8, 6);
+  for (let i = 0; i < 5; i++) {
+    const a = i / 5 * Math.PI * 2;
+    acc.flower.add(mesh(petalGeo, petalMat, Math.cos(a) * 0.07, Math.sin(a) * 0.07, 0));
+  }
+  acc.flower.add(mesh(new THREE.SphereGeometry(0.045, 8, 6), std(0xffd23a), 0, 0, 0.02));
+  acc.flower.position.set(0.2, 0.22, 0.05);
+  acc.flower.rotation.y = 0.8;
+  for (const k of ['crown', 'halo', 'horns', 'hat', 'flower']) head.add(acc[k]);
+  const wingShape = new THREE.Shape();
+  wingShape.moveTo(0, 0);
+  wingShape.quadraticCurveTo(0.35, 0.55, 0.95, 0.6);
+  wingShape.quadraticCurveTo(0.72, 0.36, 0.8, 0.18);
+  wingShape.quadraticCurveTo(0.5, 0.14, 0.58, -0.08);
+  wingShape.quadraticCurveTo(0.3, -0.04, 0, 0);
+  const wingGeom = new THREE.ShapeGeometry(wingShape);
+  acc.wings = new THREE.Group();
+  const wingL = new THREE.Group(), wingR = new THREE.Group();
+  wingL.add(new THREE.Mesh(wingGeom, wingMat));
+  wingR.add(new THREE.Mesh(wingGeom, wingMat));
+  wingR.scale.x = -1;
+  wingL.position.set(0.1, 0.78, 0.05); wingR.position.set(-0.1, 0.78, 0.05);
+  acc.wings.add(wingL, wingR);
+  catBody.add(acc.wings);
+  shadowed(acc.wings); shadowed(acc.crown); shadowed(acc.hat); shadowed(acc.horns);
+
+  // Jetpack sur le dos
+  const jet = new THREE.Group();
+  const flames = [];
+  for (const sd of [-1, 1]) {
+    jet.add(mesh(geo.jetTank, mat.jet, sd * 0.13, 0.78, 0.32));
+    const fl = mesh(geo.jetFlame, mat.flame, sd * 0.13, 0.38, 0.32);
+    fl.rotation.x = Math.PI; jet.add(fl); flames.push(fl);
+  }
+  jet.visible = false;
+  catBody.add(jet);
+
+  // Pelote de laine sous le chat (comme un skate)
+  const yarnTex = canvasTex(128, 64, (g, w, h) => {
+    g.fillStyle = '#ff7ac8'; g.fillRect(0, 0, w, h);
+    for (const [c, lw, n] of [['#c8408a', 3, 16], ['#ffc0e4', 1.5, 10]]) {
+      g.strokeStyle = c; g.lineWidth = lw;
+      for (let i = 0; i < n; i++) {
+        g.beginPath(); g.moveTo(rand(0, w), 0);
+        g.bezierCurveTo(rand(0, w), h * 0.3, rand(0, w), h * 0.7, rand(0, w), h); g.stroke();
+      }
+    }
+  });
+  const yarn = mesh(new THREE.SphereGeometry(0.3, 20, 14), std(0xffffff, { map: yarnTex, roughness: 1 }), 0, 0.3, 0);
+  yarn.castShadow = true; yarn.visible = false;
+  cat.add(yarn);
+
+  // Traînée lumineuse des skins mythiques
+  const trailGeo = new THREE.SphereGeometry(0.07, 6, 4);
+  const trail = [];
+  for (let i = 0; i < 40; i++) {
+    const m = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+    m.visible = false; scene.add(m); trail.push({ m, life: 0 });
+  }
+  let trailIdx = 0, trailClock = 0;
+
+  function patternTex(sk) {
+    if (sk._tex) return sk._tex;
+    const W = 256, H = 128;
+    let map, emi = null;
+    if (sk.pattern === 'lava' || sk.pattern === 'stars') {
+      const marks = [];
+      if (sk.pattern === 'lava') {
+        for (let i = 0; i < 18; i++) {
+          let x = rand(0, W), y = rand(0, H); const pts = [[x, y]];
+          for (let k = 0; k < 5; k++) { x += rand(-25, 25); y += rand(-18, 18); pts.push([x, y]); }
+          marks.push(pts);
+        }
+      } else {
+        for (let i = 0; i < 170; i++) marks.push([rand(0, W), rand(0, H), rand(0.6, 2.2)]);
+      }
+      const draw = (g, color) => {
+        if (sk.pattern === 'lava') {
+          g.strokeStyle = color; g.lineWidth = 3; g.lineJoin = 'round';
+          for (const pts of marks) { g.beginPath(); g.moveTo(...pts[0]); pts.slice(1).forEach(q => g.lineTo(...q)); g.stroke(); }
+        } else {
+          g.fillStyle = color;
+          for (const [x, y, rr] of marks) { g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill(); }
+        }
+      };
+      map = canvasTex(W, H, g => {
+        g.fillStyle = sk.fur; g.fillRect(0, 0, W, H);
+        if (sk.pattern === 'stars') {
+          for (const c of ['rgba(140,70,220,0.45)', 'rgba(60,110,230,0.4)', 'rgba(230,80,180,0.3)']) {
+            const x = rand(0, W), y = rand(0, H), gr = g.createRadialGradient(x, y, 0, x, y, 60);
+            gr.addColorStop(0, c); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+          }
+          draw(g, '#ffffff');
+        } else draw(g, '#ff6a00');
+      });
+      emi = canvasTex(W, H, g => { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); draw(g, sk.pattern === 'lava' ? '#ff5000' : '#ffffff'); });
+    } else {
+      map = canvasTex(W, H, g => {
+        if (sk.pattern === 'stripes') {
+          g.fillStyle = sk.fur; g.fillRect(0, 0, W, H); g.fillStyle = '#7a3a10';
+          for (let x = 0; x < W; x += 22) {
+            g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x + 10, H / 2, x, H);
+            g.lineTo(x + 8, H); g.quadraticCurveTo(x + 18, H / 2, x + 8, 0); g.fill();
+          }
+        } else if (sk.pattern === 'tux') {
+          g.fillStyle = sk.fur; g.fillRect(0, 0, W, H);
+          g.fillStyle = '#f4f4f4'; g.beginPath(); g.ellipse(W / 2, H / 2, W * 0.14, H * 0.42, 0, 0, Math.PI * 2); g.fill();
+        } else {
+          g.fillStyle = sk.fur; g.fillRect(0, 0, W, H);
+          for (const c of ['#e0782f', '#2a2422', '#e0782f', '#2a2422', '#e0782f', '#2a2422']) {
+            g.fillStyle = c; g.beginPath(); g.ellipse(rand(0, W), rand(0, H), rand(18, 40), rand(14, 30), rand(0, 3), 0, Math.PI * 2); g.fill();
+          }
+        }
+      });
+    }
+    return (sk._tex = { map, emi });
+  }
+
+  let skin = SKINS[0], furMat = mat.fur;
+  function applySkin(id) {
+    skin = SKINS.find(k => k.id === id) || SKINS[0];
+    const tex = skin.pattern ? patternTex(skin) : null;
+    const o = { roughness: skin.rough ?? 0.95, metalness: skin.metal ?? 0 };
+    if (tex) { o.map = tex.map; if (tex.emi) { o.emissive = 0xffffff; o.emissiveMap = tex.emi; } }
+    if (skin.crystal) Object.assign(o, { transparent: true, opacity: 0.72, roughness: 0.08, metalness: 0.2, emissive: 0x1a5a7a });
+    if (skin.ghost) Object.assign(o, { transparent: true, opacity: 0.5, emissive: 0x4a60a0, depthWrite: false });
+    if (skin.fx === 'fire') o.emissive = 0xff4a00;
+    const m = std(tex ? 0xffffff : skin.fur, o);
+    if (furMat !== mat.fur) furMat.dispose();
+    furMat = m;
+    for (const f of furMeshes) f.material = m;
+    mat.band.color.set(skin.band);
+    mat.eye.color.set(skin.eye);
+    accMat.color.set(skin.accColor || '#d4a020');
+    wingMat.color.set(skin.accColor || skin.fur);
+    wingMat.emissive.set(skin.fx === 'fire' ? 0xff5a00 : 0x000000);
+    for (const k in acc) acc[k].visible = (skin.acc || []).includes(k);
+  }
+
   // ---------- Fabriques d'objets ----------
   function makeObstacle(type) {
     const g = new THREE.Group();
@@ -504,6 +805,10 @@
     const t = mesh(geo.fishTail, mat.fish, -0.38, 0, 0); t.rotation.z = Math.PI / 2; g.add(t);
     return g;
   }
+  geo.jetTank = new THREE.CylinderGeometry(0.1, 0.1, 0.44, 12);
+  geo.jetFlame = new THREE.ConeGeometry(0.08, 0.36, 10);
+  mat.jet = std(0xd03030, { metalness: 0.5, roughness: 0.4 });
+  mat.flame = new THREE.MeshBasicMaterial({ color: 0xffa030, transparent: true, opacity: 0.9 });
   function makePower(type) {
     const g = new THREE.Group();
     if (type === 'magnet') {
@@ -516,6 +821,11 @@
       g.add(mesh(geo.springBase, mat.metal, 0, -0.3, 0));
       for (let i = 0; i < 4; i++) { const r = mesh(geo.spring, mat.spring, 0, -0.2 + i * 0.13, 0); r.rotation.x = Math.PI / 2; g.add(r); }
       g.add(mesh(geo.springBase, mat.spring, 0, 0.32, 0));
+    } else if (type === 'jetpack') {
+      for (const sd of [-1, 1]) {
+        g.add(mesh(geo.jetTank, mat.jet, sd * 0.13, 0, 0));
+        const fl = mesh(geo.jetFlame, mat.flame, sd * 0.13, -0.38, 0); fl.rotation.x = Math.PI; g.add(fl);
+      }
     } else {
       const c = new THREE.Mesh(geo.coin, mat.coin); c.rotation.x = Math.PI / 2; g.add(c);
     }
@@ -587,10 +897,24 @@
   }
 
   // ---------- Stockage du record ----------
-  function loadBest() { try { return +localStorage.getItem('ninja3d-best') || 0; } catch { return 0; } }
-  function saveBest(v) { try { localStorage.setItem('ninja3d-best', String(v)); } catch {} }
-  let best = loadBest();
-  if (best) $('bestStart').textContent = 'Ton record : ' + best;
+  // Poissons gagnés, skins achetés et boosters restent sur l'appareil.
+  const SAVE_KEY = 'ninja3d-save';
+  const save = { fish: 0, best: 0, owned: ['minuit'], skin: 'minuit', boosters: {}, armed: {} };
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (d) Object.assign(save, d);
+    save.best = Math.max(save.best || 0, +localStorage.getItem('ninja3d-best') || 0);
+  } catch {}
+  save.boosters = Object.assign({ jetpack: 0, yarn: 0, magnet: 0, double: 0 }, save.boosters);
+  function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
+  let best = save.best;
+
+  const BOOSTERS = [
+    { id: 'jetpack', name: 'Jetpack', desc: 'Vole 7 s au-dessus des toits dès le départ, en ramassant les poissons du ciel.', price: 250, color: '#ff7a3a', dur: 7 },
+    { id: 'yarn', name: 'Pelote de laine', desc: "Le chat roule dessus pendant 30 s. Elle le protège d'un choc.", price: 150, color: '#ff7ac8', dur: 30 },
+    { id: 'magnet', name: 'Aimant', desc: 'Attire les poissons pendant 15 s au départ.', price: 100, color: '#e8483b', dur: 15 },
+    { id: 'double', name: 'Poissons ×2', desc: 'Poissons doublés pendant 20 s au départ.', price: 200, color: '#ffcf7a', dur: 20 },
+  ];
 
   // ---------- Son ----------
   let audio = null, muted = false;
@@ -617,7 +941,7 @@
 
   // ---------- État du jeu ----------
   let state = 'menu'; // menu | play | pause | over
-  let p, segments, obstacles, fishes, items, buildings, pigeons, active;
+  let p, segments, obstacles, fishes, items, buildings, pigeons, active, activeMax;
   let speed, travel, fishCount, elapsed, cursor, segStart, sideCursor, shake;
 
   const world = new THREE.Group();
@@ -631,9 +955,11 @@
 
   function reset() {
     clearWorld();
-    p = { lane: 0, x: 0, y: 0, vy: 0, grounded: true, slide: 0, falling: false, dead: false, run: 0, deadT: 0, invuln: 0 };
+    p = { lane: 0, x: 0, y: 0, vy: 0, grounded: true, slide: 0, falling: false, dead: false, run: 0, deadT: 0, invuln: 0, flying: false };
     segments = []; obstacles = []; fishes = []; items = []; buildings = []; pigeons = [];
-    active = { magnet: 0, shield: 0, jump: 0, double: 0 };
+    active = { magnet: 0, shield: 0, jump: 0, double: 0, jetpack: 0, yarn: 0 };
+    activeMax = {};
+    for (const t of trail) { t.life = 0; t.m.visible = false; }
     speed = START_SPEED; travel = 0; fishCount = 0; elapsed = 0; shake = 0; level = 1;
     $('level').textContent = 1;
     segStart = 20; cursor = -40; sideCursor = 20;
@@ -691,7 +1017,7 @@
     fishes.push({ x: lane * LANE_W, z, y, mesh: m });
   }
   function addPower(lane, z) {
-    const type = pick(Object.keys(POWERS));
+    const type = pick(['magnet', 'magnet', 'shield', 'jump', 'double', 'double', 'jetpack']);
     const m = makePower(type);
     m.position.set(lane * LANE_W, 0.9, z);
     world.add(m);
@@ -799,11 +1125,31 @@
 
   const currentScore = () => Math.floor(travel) + fishCount * 10;
 
+  function activate(k, dur) {
+    active[k] = dur; activeMax[k] = dur;
+    if (k === 'jetpack') skyFish(dur);
+  }
+  // Une ligne de poissons dans le ciel pour le jetpack.
+  function skyFish(dur) {
+    let lane = p.lane;
+    const total = (speed + 1.5) * dur;
+    for (let d = 10; d < total; d += 2.4) {
+      if (Math.random() < 0.06) lane = Math.max(-1, Math.min(1, lane + pick([-1, 1])));
+      addFish(lane, -travel - d, 5.6);
+    }
+  }
+
   // Un choc : le bouclier l'absorbe, sinon c'est perdu.
   function hit(o) {
     if (p.invuln > 0 || p.dead) return;
     if (active.shield > 0) {
       active.shield = 0; p.invuln = 1.2; sfx.shield(); shake = 0.2;
+      if (o) o.dead = true;
+      renderPowers();
+      return;
+    }
+    if (active.yarn > 0) {
+      active.yarn = 0; p.invuln = 1.5; sfx.shield(); shake = 0.25;
       if (o) o.dead = true;
       renderPowers();
       return;
@@ -815,13 +1161,17 @@
     p.dead = true; sfx.hit(); shake = 0.4;
     const score = currentScore();
     const isBest = score > best;
-    if (isBest) { best = score; saveBest(best); }
+    if (isBest) best = score;
+    save.best = best;
+    save.fish += fishCount;
+    persist();
     setTimeout(() => {
       state = 'over';
       $('finalScore').textContent = score;
       $('finalBest').textContent = best;
       $('newBest').hidden = !isBest;
       $('overTitle').textContent = isBest ? 'Bravo !' : 'Aïe !';
+      $('earned').innerHTML = `+${fishCount} ${FISH_SVG} · total ${save.fish.toLocaleString('fr-FR')}`;
       $('overScreen').hidden = false;
       $('againBtn').focus();
     }, 900);
@@ -840,7 +1190,7 @@
     for (const k in POWERS) {
       const on = active[k] > 0;
       powerEls[k].el.hidden = !on;
-      if (on) powerEls[k].bar.style.width = (100 * active[k] / POWERS[k].dur) + '%';
+      if (on) powerEls[k].bar.style.width = Math.min(100, 100 * active[k] / (activeMax[k] || POWERS[k].dur)) + '%';
     }
   }
 
@@ -877,13 +1227,22 @@
     // Saut, chute, glissade
     p.slide = Math.max(0, p.slide - dt);
     const onRoof = supported();
-    p.vy -= GRAVITY * dt;
-    p.y += p.vy * dt;
-    if (!p.falling && onRoof && p.y <= 0) {
-      p.y = 0; p.vy = 0; p.grounded = true;
+    // Le jetpack ne s'arrête qu'au-dessus d'un toit.
+    if (p.flying && active.jetpack <= 0 && !onRoof) active.jetpack = 0.05;
+    if (active.jetpack > 0 && !p.dead) {
+      p.flying = true;
+      p.y += (5.5 - p.y) * Math.min(1, dt * 3);
+      p.vy = 0; p.grounded = false; p.falling = false; p.slide = 0;
     } else {
-      p.grounded = false;
-      if (!onRoof && p.y < -0.05) p.falling = true;
+      if (p.flying) { p.flying = false; p.invuln = Math.max(p.invuln, 1.5); }
+      p.vy -= GRAVITY * dt;
+      p.y += p.vy * dt;
+      if (!p.falling && onRoof && p.y <= 0) {
+        p.y = 0; p.vy = 0; p.grounded = true;
+      } else {
+        p.grounded = false;
+        if (!onRoof && p.y < -0.05) p.falling = true;
+      }
     }
     if (p.falling && !p.dead && active.shield > 0 && p.y < -0.6) {
       active.shield = 0; p.falling = false; p.vy = 13; p.invuln = 1.2; sfx.shield(); renderPowers();
@@ -896,7 +1255,7 @@
       const sliding = p.slide > 0 && p.grounded;
       const topY = p.y + (sliding ? 0.65 : 1.35);
       for (const o of obstacles) {
-        if (o.dead) continue;
+        if (o.dead || p.flying) continue;
         const oz = o.z + travel, ox = o.lane * LANE_W;
         const half = o.type === 'low' ? 0.65 : 0.9;
         const depth = o.type === 'tall' ? 0.9 : o.type === 'low' ? 0.45 : 0.15;
@@ -922,7 +1281,7 @@
         if (it.got) continue;
         const iz = it.z + travel;
         if (Math.abs(iz) < 0.9 && Math.abs(it.x - p.x) < 0.9 && Math.abs(it.y - (p.y + 0.6)) < 1.1) {
-          it.got = true; active[it.type] = POWERS[it.type].dur; sfx.power();
+          it.got = true; activate(it.type, POWERS[it.type].dur); sfx.power();
         }
       }
     }
@@ -977,6 +1336,40 @@
     ribbons[0].rotation.z = Math.sin(t * 20) * 0.3;
     ribbons[1].rotation.z = Math.sin(t * 20 + 1) * 0.3;
     if (p.dead) { p.deadT += dt; cat.rotation.x = -p.deadT * 6; } else cat.rotation.x = 0;
+    cat.rotation.y = state === 'menu' ? t * 0.8 : 0;
+
+    // Pelote, jetpack, ailes et effets du skin
+    const onYarn = active.yarn > 0 && !p.flying;
+    yarn.visible = onYarn;
+    catBody.position.y += ((onYarn ? 0.45 : 0) - catBody.position.y) * Math.min(1, dt * 12);
+    if (onYarn) yarn.rotation.x -= dt * speed / 0.3;
+    jet.visible = p.flying;
+    if (p.flying) for (const fl of flames) fl.scale.y = 0.8 + Math.random() * 0.6;
+    if (acc.wings.visible) {
+      const a = 0.35 + Math.sin(t * (p.flying ? 14 : 4)) * 0.35;
+      wingL.rotation.y = -a; wingR.rotation.y = a;
+    }
+    if (skin.fx === 'rainbow') furMat.color.setHSL((t * 0.15) % 1, 0.75, 0.55);
+    if (skin.fx === 'fire') furMat.emissiveIntensity = 0.45 + Math.sin(t * 8) * 0.25;
+    if (skin.trail && state === 'play' && !p.dead) {
+      trailClock += dt;
+      while (trailClock > 0.03) {
+        trailClock -= 0.03;
+        const tr = trail[trailIdx = (trailIdx + 1) % trail.length];
+        tr.life = 0.6; tr.m.visible = true;
+        tr.m.position.set(p.x + rand(-0.15, 0.15), p.y + catBody.position.y + rand(0.35, 0.75), 0.45);
+        if (skin.trail === 'rainbow') tr.m.material.color.setHSL((t * 0.6) % 1, 0.9, 0.6);
+        else tr.m.material.color.set(skin.trail);
+      }
+    }
+    for (const tr of trail) {
+      if (tr.life <= 0) continue;
+      tr.life -= dt;
+      tr.m.position.z += speed * dt;
+      tr.m.scale.setScalar(Math.max(0.01, tr.life / 0.6));
+      tr.m.material.opacity = Math.max(0, tr.life / 0.6);
+      if (tr.life <= 0) tr.m.visible = false;
+    }
     catBody.visible = p.invuln > 0 ? Math.sin(t * 40) > 0 : true;
     bubble.visible = active.shield > 0;
     if (bubble.visible) bubble.scale.setScalar(1 + Math.sin(t * 5) * 0.04);
@@ -998,16 +1391,26 @@
   }
   window.addEventListener('resize', resize);
 
+  // En jeu : derrière le chat. Au menu et dans la boutique : de face, pour admirer le skin.
+  let menuBlend = 1;
+  const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+  const menuPos = new THREE.Vector3(), menuLook = new THREE.Vector3(), lookAt = new THREE.Vector3();
   function placeCamera(dt) {
-    const cx = p.x * 0.55;
+    menuBlend += ((state === 'menu' ? 1 : 0) - menuBlend) * Math.min(1, dt * 3);
     const cy = 2.4 + camDist * 0.22 + Math.max(0, p.y) * 0.4;
-    camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 8);
-    camera.position.y += (cy - camera.position.y) * Math.min(1, dt * 6);
-    camera.position.z = camDist;
+    camPos.x += (p.x * 0.55 - camPos.x) * Math.min(1, dt * 8);
+    camPos.y += (cy - camPos.y) * Math.min(1, dt * 6);
+    camPos.z = camDist;
+    camLook.set(p.x * 0.4, 0.8 + Math.max(0, p.y) * 0.6, -8);
+    const portrait = camera.aspect < 1;
+    menuPos.set(portrait ? 0 : 1.1, 1.3, portrait ? 4.6 : 3.6);
+    menuLook.set(portrait ? 0 : 1.1, portrait ? -0.9 : 0.6, 0);
+    camera.position.lerpVectors(camPos, menuPos, menuBlend);
+    lookAt.lerpVectors(camLook, menuLook, menuBlend);
     if (shake > 0) { camera.position.x += rand(-0.2, 0.2) * shake; camera.position.y += rand(-0.2, 0.2) * shake; }
-    camera.fov = baseFov + (speed - START_SPEED) * 0.35;
+    camera.fov = baseFov + (speed - START_SPEED) * 0.35 * (1 - menuBlend);
     camera.updateProjectionMatrix();
-    camera.lookAt(p.x * 0.4, 0.8, -8);
+    camera.lookAt(lookAt);
     sky.position.copy(camera.position);
   }
 
@@ -1027,13 +1430,23 @@
 
   reset();
   resize();
-  camera.position.set(0, 2.4 + camDist * 0.22, camDist);
+  camPos.set(0, 2.4 + camDist * 0.22, camDist);
   requestAnimationFrame(frame);
 
   // ---------- Contrôles ----------
   function start() {
     reset(); state = 'play';
-    $('startScreen').hidden = true; $('overScreen').hidden = true; $('pauseScreen').hidden = true;
+    applySkin(save.skin);
+    for (const b of BOOSTERS) {
+      if (save.armed[b.id] && save.boosters[b.id] > 0) {
+        save.boosters[b.id]--;
+        activate(b.id, b.dur);
+        if (!save.boosters[b.id]) save.armed[b.id] = false;
+      }
+    }
+    persist();
+    $('hudLeft').hidden = false; $('pause').hidden = false;
+    $('startScreen').hidden = true; $('shopScreen').hidden = true; $('overScreen').hidden = true; $('pauseScreen').hidden = true;
     $('hint').hidden = false;
     setTimeout(() => { $('hint').hidden = true; }, 5000);
   }
@@ -1044,6 +1457,7 @@
 
   $('playBtn').addEventListener('click', start);
   $('againBtn').addEventListener('click', start);
+  $('menuBtn').addEventListener('click', () => { reset(); showMenu(); });
   $('resumeBtn').addEventListener('click', () => setPause(false));
   $('pause').addEventListener('click', e => { e.stopPropagation(); setPause(state === 'play'); });
   $('mute').addEventListener('click', e => {
@@ -1070,7 +1484,7 @@
   window.addEventListener('keydown', e => {
     const c = e.code;
     if (['Space', 'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS', 'ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD'].includes(c)) e.preventDefault();
-    if (state === 'menu' && c === 'Space') { start(); return; }
+    if (state === 'menu') { if (c === 'Space' && !$('startScreen').hidden) start(); return; }
     if (e.repeat) return;
     if (c === 'Space' || c === 'ArrowUp' || c === 'KeyW') jump();
     else if (c === 'ArrowDown' || c === 'KeyS') slide();
@@ -1079,5 +1493,114 @@
     else if (c === 'KeyP' || c === 'Escape') setPause(state === 'play');
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
+
+  // ---------- Menu ----------
+  const FISH_SVG = '<svg class="fi" viewBox="0 0 24 14" aria-hidden="true"><path d="M1 7c4-6.5 12-6.5 16 0-4 6.5-12 6.5-16 0z"/><path d="M16 7l7-6v12z"/></svg>';
+  const fmt = n => n.toLocaleString('fr-FR');
+  function refreshWallet() {
+    document.querySelectorAll('.bank').forEach(e => { e.textContent = fmt(save.fish); });
+    $('bestStart').hidden = !best;
+    $('bestStart').textContent = 'Record ' + fmt(best);
+  }
+  function renderBoostRow() {
+    $('boostRow').innerHTML = BOOSTERS.map(b => {
+      const n = save.boosters[b.id], on = !!save.armed[b.id] && n > 0;
+      return `<button class="boost-toggle" data-id="${b.id}" style="--c:${b.color}" aria-pressed="${on}" ${n ? '' : 'disabled'}>` +
+        `<span class="ic"></span>${b.name}<span>×${n}</span></button>`;
+    }).join('');
+  }
+  function showMenu() {
+    state = 'menu';
+    applySkin(save.skin);
+    $('hudLeft').hidden = true; $('pause').hidden = true; $('hint').hidden = true;
+    $('overScreen').hidden = true; $('pauseScreen').hidden = true; $('shopScreen').hidden = true;
+    $('startScreen').hidden = false;
+    refreshWallet(); renderBoostRow();
+  }
+  $('boostRow').addEventListener('click', e => {
+    const btn = e.target.closest('.boost-toggle');
+    if (!btn || btn.disabled) return;
+    save.armed[btn.dataset.id] = !save.armed[btn.dataset.id];
+    persist(); renderBoostRow();
+  });
+
+  // ---------- Boutique ----------
+  let shopTab = 'skins', preview = save.skin;
+  function swatch(k) {
+    if (k.fx === 'rainbow') return 'conic-gradient(#ff4a4a, #ffcf3a, #4ae37a, #4ab0ff, #b06cff, #ff4a4a)';
+    if (k.fx === 'fire') return 'radial-gradient(circle at 50% 70%, #ffd23a, #ff6a1a 55%, #a01a00)';
+    if (k.pattern === 'stars') return `radial-gradient(circle at 30% 30%, #fff 0 2px, transparent 3px), radial-gradient(circle at 68% 62%, #fff 0 1.5px, transparent 2.5px), radial-gradient(circle, #6a3ab0, ${k.fur})`;
+    if (k.pattern === 'lava') return `radial-gradient(circle at 40% 40%, #ff6a00 0 12%, ${k.fur} 34%)`;
+    if (k.pattern === 'stripes') return `repeating-linear-gradient(100deg, ${k.fur} 0 7px, #7a3a10 7px 11px)`;
+    if (k.pattern === 'calico') return 'radial-gradient(circle at 30% 35%, #e0782f 0 22%, transparent 23%), radial-gradient(circle at 70% 65%, #2a2422 0 20%, transparent 21%), #fbf6ee';
+    if (k.pattern === 'tux') return 'radial-gradient(ellipse at 50% 72%, #f4f4f4 0 28%, #1c1c22 30%)';
+    if (k.metal) return `radial-gradient(circle at 35% 30%, #ffffff 0 8%, ${k.fur} 40%, #555 110%)`;
+    return `linear-gradient(${k.fur} 0 38%, ${k.band} 38% 54%, ${k.fur} 54%)`;
+  }
+  function renderShop() {
+    $('tabSkins').setAttribute('aria-selected', shopTab === 'skins');
+    $('tabBoost').setAttribute('aria-selected', shopTab === 'boost');
+    $('skinGrid').hidden = shopTab !== 'skins';
+    $('boostList').hidden = shopTab !== 'boost';
+    $('skinAction').hidden = shopTab !== 'skins';
+    if (shopTab === 'skins') {
+      $('skinGrid').innerHTML = SKINS.map(k => {
+        const rr = RARITY[k.r], owned = save.owned.includes(k.id), eq = save.skin === k.id;
+        const price = eq ? 'Équipé' : owned ? 'Possédé' : FISH_SVG + fmt(k.price);
+        return `<button class="card${preview === k.id ? ' sel' : ''}" data-id="${k.id}" style="--rar:${rr.color}">` +
+          `<span class="sw" style="background:${swatch(k)}"></span><b>${k.name}</b><span class="rar">${rr.label}</span>` +
+          `<span class="price${owned ? ' owned' : ''}">${price}</span></button>`;
+      }).join('');
+      const k = SKINS.find(x => x.id === preview), btn = $('skinAction');
+      if (save.skin === k.id) { btn.textContent = 'Équipé'; btn.disabled = true; }
+      else if (save.owned.includes(k.id)) { btn.textContent = 'Équiper'; btn.disabled = false; }
+      else {
+        btn.innerHTML = `Acheter ${FISH_SVG} ${fmt(k.price)}`;
+        btn.disabled = save.fish < k.price;
+        if (btn.disabled) $('shopMsg').textContent = `Il te manque ${fmt(k.price - save.fish)} poissons`;
+      }
+    } else {
+      $('boostList').innerHTML = BOOSTERS.map(b =>
+        `<div class="bcard" style="--c:${b.color}"><span class="ic"></span>` +
+        `<div><b>${b.name}</b> <span class="stock">×${save.boosters[b.id]}</span><small>${b.desc}</small></div>` +
+        `<button class="buy" data-id="${b.id}" ${save.fish < b.price ? 'disabled' : ''}>${FISH_SVG}${fmt(b.price)}</button></div>`
+      ).join('');
+    }
+    refreshWallet();
+  }
+  function openShop() {
+    preview = save.skin; shopTab = 'skins';
+    $('startScreen').hidden = true; $('shopScreen').hidden = false; $('shopMsg').textContent = '';
+    renderShop();
+  }
+  $('shopBtn').addEventListener('click', openShop);
+  $('shopBack').addEventListener('click', showMenu);
+  $('tabSkins').addEventListener('click', () => { shopTab = 'skins'; $('shopMsg').textContent = ''; renderShop(); });
+  $('tabBoost').addEventListener('click', () => { shopTab = 'boost'; $('shopMsg').textContent = ''; applySkin(save.skin); preview = save.skin; renderShop(); });
+  $('skinGrid').addEventListener('click', e => {
+    const c = e.target.closest('.card');
+    if (!c) return;
+    preview = c.dataset.id; applySkin(preview); $('shopMsg').textContent = '';
+    renderShop();
+  });
+  $('skinAction').addEventListener('click', () => {
+    const k = SKINS.find(x => x.id === preview);
+    if (!save.owned.includes(k.id)) {
+      if (save.fish < k.price) return;
+      save.fish -= k.price; save.owned.push(k.id); sfx.power();
+      $('shopMsg').textContent = `${k.name} est à toi !`;
+    }
+    save.skin = k.id; persist(); renderShop();
+  });
+  $('boostList').addEventListener('click', e => {
+    const b = e.target.closest('.buy');
+    if (!b || b.disabled) return;
+    const d = BOOSTERS.find(x => x.id === b.dataset.id);
+    save.fish -= d.price; save.boosters[d.id]++; persist(); sfx.power();
+    $('shopMsg').textContent = `${d.name} acheté (×${save.boosters[d.id]})`;
+    renderShop();
+  });
+
+  showMenu();
 })();
 </script>
