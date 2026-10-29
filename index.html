@@ -921,7 +921,7 @@
   if (welcomeGift) { save.fish += 500; save.gift = true; persist(); }
 
   const BOOSTERS = [
-    { id: 'jetpack', name: 'Jetpack', desc: 'Vole 7 s au-dessus des toits dès le départ, en ramassant les poissons du ciel.', price: 250, color: '#ff7a3a', dur: 7 },
+    { id: 'jetpack', name: 'Jetpack', desc: 'Vole 7 s, 5 fois plus vite, au-dessus des toits et ramasse au moins 130 poissons.', price: 250, color: '#ff7a3a', dur: 7 },
     { id: 'yarn', name: 'Pelote de laine', desc: "Le chat roule dessus pendant 30 s. Elle le protège d'un choc.", price: 150, color: '#ff7ac8', dur: 30 },
     { id: 'magnet', name: 'Aimant', desc: 'Attire les poissons pendant 15 s au départ.', price: 100, color: '#e8483b', dur: 15 },
     { id: 'double', name: 'Poissons ×2', desc: 'Poissons doublés pendant 20 s au départ.', price: 200, color: '#ffcf7a', dur: 20 },
@@ -953,6 +953,7 @@
   // ---------- État du jeu ----------
   let state = 'menu'; // menu | play | pause | over
   let p, segments, obstacles, fishes, items, buildings, pigeons, active, activeMax;
+  let boost = 1, stepDist = 0;
   let speed, travel, fishCount, elapsed, cursor, segStart, sideCursor, shake;
 
   const world = new THREE.Group();
@@ -971,6 +972,7 @@
     active = { magnet: 0, shield: 0, jump: 0, double: 0, jetpack: 0, yarn: 0 };
     activeMax = {};
     for (const t of trail) { t.life = 0; t.m.visible = false; }
+    boost = 1; stepDist = 0;
     speed = START_SPEED; travel = 0; fishCount = 0; elapsed = 0; shake = 0; level = 1;
     $('level').textContent = 1;
     segStart = 20; cursor = -40; sideCursor = 20;
@@ -1025,7 +1027,9 @@
     m.position.set(lane * LANE_W, y, z);
     m.rotation.y = Math.random() * 6;
     world.add(m);
-    fishes.push({ x: lane * LANE_W, z, y, mesh: m });
+    const f = { x: lane * LANE_W, z, y, mesh: m };
+    fishes.push(f);
+    return f;
   }
   function addPower(lane, z) {
     const type = pick(['magnet', 'magnet', 'shield', 'jump', 'double', 'double', 'jetpack']);
@@ -1140,13 +1144,14 @@
     active[k] = dur; activeMax[k] = dur;
     if (k === 'jetpack') skyFish(dur);
   }
-  // Une ligne de poissons dans le ciel pour le jetpack.
+  // Une ligne de poissons dans le ciel pour le jetpack : assez pour rembourser au moins la moitié de son prix.
+  const JET_BOOST = 5, JET_FISH = 130;
   function skyFish(dur) {
     let lane = p.lane;
-    const total = (speed + 1.5) * dur;
-    for (let d = 10; d < total; d += 2.4) {
+    const total = speed * JET_BOOST * dur * 0.9, step = (total - 15) / JET_FISH;
+    for (let i = 0; i < JET_FISH; i++) {
       if (Math.random() < 0.06) lane = Math.max(-1, Math.min(1, lane + pick([-1, 1])));
-      addFish(lane, -travel - d, 5.6);
+      addFish(lane, -travel - 15 - i * step, 5.6).sky = true;
     }
   }
 
@@ -1224,7 +1229,10 @@
       speed = Math.min(MAX_SPEED, START_SPEED + elapsed * 0.28);
       const lvl = 1 + Math.floor(elapsed / LEVEL_TIME);
       if (lvl !== level) { level = lvl; showLevel(); }
-      travel += speed * dt;
+      // Le jetpack fait filer le chat 5 fois plus vite.
+      boost += ((active.jetpack > 0 ? JET_BOOST : 1) - boost) * Math.min(1, dt * 4);
+      stepDist = speed * boost * dt;
+      travel += stepDist;
       for (const k in active) if (k !== 'shield' || active[k] > 0) active[k] = Math.max(0, active[k] - dt);
     }
     world.position.z = travel;
@@ -1278,20 +1286,25 @@
       for (const f of fishes) {
         if (f.got) continue;
         let fz = f.z + travel;
-        if (active.magnet > 0 && fz > -16 && fz < 3) {
+        if (p.flying && f.sky && fz > -60 && fz < 3) {
+          // En vol, les poissons du ciel viennent tout seuls vers le chat.
+          const k = Math.min(1, dt * 20);
+          f.x += (p.x - f.x) * k; f.y += (p.y + 0.6 - f.y) * k;
+          f.mesh.position.set(f.x, f.y, f.z);
+        } else if (active.magnet > 0 && fz > -16 && fz < 3) {
           const k = Math.min(1, dt * 9);
           f.x += (p.x - f.x) * k; f.y += (p.y + 0.6 - f.y) * k; f.z += (-travel - f.z) * k;
           f.mesh.position.set(f.x, f.y, f.z);
           fz = f.z + travel;
         }
-        if (Math.abs(fz) < 0.8 && Math.abs(f.x - p.x) < 0.8 && Math.abs(f.y - (p.y + 0.6)) < 1.0) {
+        if (fz > -0.8 && fz < 0.8 + stepDist && Math.abs(f.x - p.x) < 0.8 && Math.abs(f.y - (p.y + 0.6)) < 1.0) {
           f.got = true; fishCount += active.double > 0 ? 2 : 1; sfx.fish();
         }
       }
       for (const it of items) {
         if (it.got) continue;
         const iz = it.z + travel;
-        if (Math.abs(iz) < 0.9 && Math.abs(it.x - p.x) < 0.9 && Math.abs(it.y - (p.y + 0.6)) < 1.1) {
+        if (iz > -0.9 && iz < 0.9 + stepDist && Math.abs(it.x - p.x) < 0.9 && Math.abs(it.y - (p.y + 0.6)) < 1.1) {
           it.got = true; activate(it.type, POWERS[it.type].dur); sfx.power();
         }
       }
@@ -1376,7 +1389,7 @@
     for (const tr of trail) {
       if (tr.life <= 0) continue;
       tr.life -= dt;
-      tr.m.position.z += speed * dt;
+      tr.m.position.z += speed * boost * dt;
       tr.m.scale.setScalar(Math.max(0.01, tr.life / 0.6));
       tr.m.material.opacity = Math.max(0, tr.life / 0.6);
       if (tr.life <= 0) tr.m.visible = false;
@@ -1419,7 +1432,7 @@
     camera.position.lerpVectors(camPos, menuPos, menuBlend);
     lookAt.lerpVectors(camLook, menuLook, menuBlend);
     if (shake > 0) { camera.position.x += rand(-0.2, 0.2) * shake; camera.position.y += rand(-0.2, 0.2) * shake; }
-    camera.fov = baseFov + (speed - START_SPEED) * 0.35 * (1 - menuBlend);
+    camera.fov = baseFov + ((speed - START_SPEED) * 0.35 + (boost - 1) * 4) * (1 - menuBlend);
     camera.updateProjectionMatrix();
     camera.lookAt(lookAt);
     sky.position.copy(camera.position);
