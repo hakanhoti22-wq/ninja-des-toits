@@ -52,13 +52,16 @@ jobs:
           sed -i 's/<activity/<activity android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml
 
       - name: Icône de l'application
-        working-directory: app
-        continue-on-error: true
+        working-directory: app/android/app/src/main/res
         run: |
-          mkdir -p assets
-          cp www/icons/icon-1024.png assets/icon-only.png
-          cp www/icons/icon-1024.png assets/icon-foreground.png
-          npx --yes @capacitor/assets@3 generate --android --iconBackgroundColor '#1d1730' --splashBackgroundColor '#1d1730'
+          rm -rf mipmap-anydpi-v26
+          for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+            mkdir -p "$d"
+            cp ../../../../../www/icons/icon-192.png "$d/ic_launcher.png"
+            cp ../../../../../www/icons/icon-192.png "$d/ic_launcher_round.png"
+          done
+          cp ../../../../../www/icons/icon-512.png mipmap-xxxhdpi/ic_launcher.png
+          cp ../../../../../www/icons/icon-512.png mipmap-xxxhdpi/ic_launcher_round.png
 
       - name: Compiler l'APK
         working-directory: app/android
