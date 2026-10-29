@@ -325,6 +325,18 @@
   @keyframes hd { from { transform: translateY(calc(-40 * var(--u))); opacity: 1; } to { transform: translateY(calc(50 * var(--u))); opacity: 0.2; } }
   @keyframes ht { 0%, 30%, 60%, 100% { transform: scale(1); } 15%, 45% { transform: scale(0.72); } }
   @media (prefers-reduced-motion: reduce) { .hand { animation: none !important; } }
+  /* Classement */
+  #lbScreen .panel { overflow: hidden; max-height: 72%; }
+  @media (min-aspect-ratio: 1/1) { #lbScreen .panel { max-height: calc(100% - 32px); } }
+  .board { list-style: none; margin: 0; padding: 2px; display: grid; gap: calc(5 * var(--u)); width: 100%; overflow-y: auto; min-height: 0; flex: 1 1 auto; counter-reset: rank; }
+  .board li {
+    counter-increment: rank; display: grid; grid-template-columns: calc(30 * var(--u)) 1fr auto; gap: calc(8 * var(--u)); align-items: center;
+    background: rgba(255, 255, 255, 0.07); border-radius: calc(10 * var(--u)); padding: calc(8 * var(--u)) calc(12 * var(--u));
+    font-weight: 800; font-size: calc(15 * var(--u)); text-align: left;
+  }
+  .board li::before { content: counter(rank); font-family: var(--display); color: var(--gold); }
+  .board li.me { outline: 2px solid var(--gold); }
+  .board .sc { font-family: var(--display); font-variant-numeric: tabular-nums; }
 </style>
 
 <div id="app">
@@ -373,6 +385,7 @@
         <button class="ghost-btn" id="shopBtn">Boutique</button>
         <button class="ghost-btn" id="albumBtn">Collection</button>
         <button class="ghost-btn" id="trophyBtn">Trophées</button>
+        <button class="ghost-btn" id="lbBtn">Classement</button>
         <button class="ghost-btn" id="settingsBtn">Réglages</button>
       </div>
       <details class="howto">
@@ -489,7 +502,28 @@
       <div class="setting col"><span>Installer le jeu</span><p class="soft" id="installText"></p>
         <button class="ghost-btn" id="installBtn" hidden>Installer sur ce téléphone</button></div>
       <button class="ghost-btn" id="tutoAgain">Revoir le tutoriel</button>
-      <div id="parentSection"></div>
+      <div class="setting col" id="parentSection">
+        <span>Mode parent : temps de jeu par jour</span>
+        <p class="soft" id="parentInfo"></p>
+        <button class="ghost-btn" id="parentBtn">Modifier (parents)</button>
+        <div class="setting col" id="parentGate" hidden>
+          <label class="soft" for="gateA" id="gateQ"></label>
+          <div class="row"><input class="name-input" id="gateA" inputmode="numeric" maxlength="3" autocomplete="off"><button class="ghost-btn" id="gateOk">Valider</button></div>
+          <p class="msg" id="gateMsg"></p>
+        </div>
+        <div class="setting col" id="parentPanel" hidden>
+          <div class="seg" id="limitSeg" role="group" aria-label="Limite par jour">
+            <button data-m="0">Sans</button><button data-m="15">15 min</button><button data-m="30">30</button><button data-m="60">1 h</button><button data-m="90">1 h 30</button>
+          </div>
+          <button class="ghost-btn" id="parentBonus">+15 min pour aujourd'hui</button>
+        </div>
+      </div>
+      <div class="setting col">
+        <span>Classement de la famille</span>
+        <p class="soft">Mettez tous le même code pour voir vos scores ensemble.</p>
+        <div class="row"><input class="name-input" id="groupCode" maxlength="20" placeholder="Code de la famille" autocomplete="off" autocapitalize="characters"><button class="ghost-btn" id="groupSave">OK</button></div>
+        <p class="msg" id="groupMsg"></p>
+      </div>
       <button class="ghost-btn" id="settingsBack">Retour</button>
     </div>
   </div>
@@ -499,6 +533,27 @@
       <div class="shop-head"><h2>Trophées</h2><span class="wallet muted" id="trophyCount"></span></div>
       <ul class="trophies" id="trophyList"></ul>
       <button class="ghost-btn" id="trophyBack">Retour</button>
+    </div>
+  </div>
+
+  <div class="overlay menu" id="lbScreen" hidden>
+    <div class="panel">
+      <div class="shop-head"><h2>Classement</h2><span class="wallet muted" id="lbGroup"></span></div>
+      <p class="soft" id="lbStatus"></p>
+      <ol class="board" id="lbList"></ol>
+      <button class="ghost-btn" id="lbBack">Retour</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="limitScreen" hidden>
+    <div class="panel">
+      <h2>C'est l'heure de la pause&nbsp;!</h2>
+      <p class="soft" id="limitText"></p>
+      <p class="soft">Les parents peuvent ajouter 15 minutes :</p>
+      <label class="soft" for="limitA" id="limitQ"></label>
+      <div class="row"><input class="name-input" id="limitA" inputmode="numeric" maxlength="3" autocomplete="off"><button class="ghost-btn" id="limitOk">Valider</button></div>
+      <p class="msg" id="limitMsg"></p>
+      <button class="big-btn" id="limitMenu">Retour au menu</button>
     </div>
   </div>
 
@@ -1927,6 +1982,8 @@
     $('overList').innerHTML = done.map(d => `<li>${d}</li>`).join('');
     $('playerName').value = save.name || '';
     $('defiMsg').textContent = '';
+    persist();
+    submitScore(score);
     $('pauseTip').hidden = !(sessionPlay > 1800 && !pauseTipShown);
     if (!$('pauseTip').hidden) pauseTipShown = true;
     $('overScreen').hidden = false;
@@ -2046,6 +2103,7 @@
     if (p.y < -8 && !p.dead) die();
     p.run += dt * speed * 0.9;
     sessionPlay += dt;
+    addPlayTime(dt);
     if (!p.grounded) p.air = (p.air || 0) + dt;
 
     // Trous franchis, obstacles passés (combo)
@@ -2539,6 +2597,7 @@
 
   // ---------- Contrôles ----------
   function start() {
+    if (limitReached()) { showLimit(); return; }
     reset(); state = 'play';
     applySkin(save.skin);
     for (const b of BOOSTERS) {
@@ -2642,6 +2701,7 @@
     $('overScreen').hidden = true; $('pauseScreen').hidden = true; $('shopScreen').hidden = true;
     $('startScreen').hidden = false;
     $('settingsScreen').hidden = true; $('trophyScreen').hidden = true; $('tuto').hidden = true;
+    $('lbScreen').hidden = true; $('limitScreen').hidden = true;
     yarnShowcase = false; applyYarnSkin(save.yarnSkin);
     $('chestScreen').hidden = true; $('albumScreen').hidden = true; $('reviveScreen').hidden = true;
     refreshWallet(); renderBoostRow(); renderMissions();
@@ -2921,9 +2981,122 @@
   }
   function openSettings() {
     $('startScreen').hidden = true; $('settingsScreen').hidden = false;
-    renderSettings(); $('settingsBack').focus();
+    renderSettings(); renderParent(); $('settingsBack').focus();
+    $('groupCode').value = save.group || ''; $('groupMsg').textContent = '';
   }
   $('settingsBtn').addEventListener('click', openSettings);
+
+  // ---------- Mode parent : limite de temps par jour ----------
+  // Une question de calcul évite que les plus petits changent la limite tout seuls.
+  save.parent = Object.assign({ limit: 0 }, save.parent);
+  save.playDay = save.playDay || { day: '', sec: 0, bonus: 0 };
+  function playToday() {
+    if (save.playDay.day !== today()) save.playDay = { day: today(), sec: 0, bonus: 0 };
+    return save.playDay;
+  }
+  let playSaveT = 0;
+  function addPlayTime(dt) {
+    playToday().sec += dt;
+    playSaveT += dt;
+    if (playSaveT > 10) { playSaveT = 0; persist(); }
+  }
+  const limitSec = () => save.parent.limit ? (save.parent.limit + playToday().bonus) * 60 : Infinity;
+  const limitReached = () => playToday().sec >= limitSec();
+  const minutes = sec => Math.floor(sec / 60);
+  let gate = { a: 0 };
+  function newGate(labelId) {
+    const x = 6 + Math.floor(Math.random() * 4), y = 6 + Math.floor(Math.random() * 4);
+    gate = { a: x * y };
+    $(labelId).textContent = `Question pour les parents : combien font ${x} × ${y} ?`;
+  }
+  function renderParent() {
+    const pd = playToday();
+    $('parentInfo').textContent = save.parent.limit
+      ? `Limite : ${save.parent.limit} min par jour${pd.bonus ? ` (+${pd.bonus} min aujourd'hui)` : ''}. Joué aujourd'hui : ${minutes(pd.sec)} min.`
+      : `Pas de limite. Joué aujourd'hui : ${minutes(pd.sec)} min.`;
+    $('limitSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.m === save.parent.limit));
+    $('parentGate').hidden = true; $('parentPanel').hidden = true; $('parentBtn').hidden = false;
+  }
+  $('parentBtn').addEventListener('click', () => {
+    newGate('gateQ'); $('gateA').value = ''; $('gateMsg').textContent = '';
+    $('parentGate').hidden = false; $('parentBtn').hidden = true; $('gateA').focus();
+  });
+  $('gateOk').addEventListener('click', () => {
+    if (parseInt($('gateA').value, 10) === gate.a) { $('parentGate').hidden = true; $('parentPanel').hidden = false; }
+    else { $('gateMsg').textContent = 'Ce n\'est pas la bonne réponse.'; newGate('gateQ'); $('gateA').value = ''; }
+  });
+  $('limitSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    save.parent.limit = +b.dataset.m; persist();
+    renderParent(); $('parentBtn').hidden = true; $('parentPanel').hidden = false;
+  });
+  $('parentBonus').addEventListener('click', () => {
+    playToday().bonus += 15; persist();
+    renderParent(); $('parentBtn').hidden = true; $('parentPanel').hidden = false;
+  });
+  function showLimit() {
+    state = 'menu';
+    for (const id of ['startScreen', 'overScreen', 'shopScreen', 'settingsScreen']) $(id).hidden = true;
+    $('limitText').textContent = `Tu as joué ${minutes(playToday().sec)} minutes aujourd'hui. Repose tes yeux et reviens demain !`;
+    newGate('limitQ'); $('limitA').value = ''; $('limitMsg').textContent = '';
+    $('limitScreen').hidden = false;
+  }
+  $('limitOk').addEventListener('click', () => {
+    if (parseInt($('limitA').value, 10) === gate.a) { playToday().bonus += 15; persist(); $('limitScreen').hidden = true; showMenu(); toast('+15 minutes', 'Bonne partie !'); }
+    else { $('limitMsg').textContent = 'Ce n\'est pas la bonne réponse.'; newGate('limitQ'); $('limitA').value = ''; }
+  });
+  $('limitMenu').addEventListener('click', () => { $('limitScreen').hidden = true; showMenu(); });
+
+  // ---------- Classement de la famille (Firebase Firestore, sans bibliothèque) ----------
+  // Pour l'activer : remplir LEADERBOARD avec l'identifiant du projet et la clé web (voir README).
+  const LEADERBOARD = { projectId: '', apiKey: '' };
+  const lbReady = () => !!(LEADERBOARD.projectId && LEADERBOARD.apiKey);
+  const cleanGroup = v => (v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+  const lbBase = () => `https://firestore.googleapis.com/v1/projects/${LEADERBOARD.projectId}/databases/(default)/documents/groups/${save.group}`;
+  $('groupSave').addEventListener('click', () => {
+    const g = cleanGroup($('groupCode').value);
+    $('groupCode').value = g;
+    if (g && g.length < 4) { $('groupMsg').textContent = 'Le code doit faire au moins 4 lettres ou chiffres.'; return; }
+    save.group = g; save.lbBest = 0; persist();
+    $('groupMsg').textContent = g ? `Code enregistré : ${g}` : 'Classement désactivé.';
+  });
+  async function submitScore(score) {
+    if (!lbReady() || !save.group || !save.name || score <= (save.lbBest || 0)) return;
+    try {
+      const res = await fetch(`${lbBase()}/scores?key=${LEADERBOARD.apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { name: { stringValue: save.name }, score: { integerValue: String(score) }, date: { timestampValue: new Date().toISOString() } } }),
+      });
+      if (res.ok) { save.lbBest = score; persist(); }
+    } catch {}
+  }
+  async function openLeaderboard() {
+    $('startScreen').hidden = true; $('lbScreen').hidden = false; $('lbBack').focus();
+    $('lbList').innerHTML = '';
+    $('lbGroup').textContent = save.group || '';
+    if (!lbReady()) { $('lbStatus').textContent = 'Le classement en ligne n\'est pas encore activé sur ce jeu.'; return; }
+    if (!save.group) { $('lbStatus').textContent = 'Entre un code de famille dans Réglages pour voir le classement.'; return; }
+    if (!save.name) { $('lbStatus').textContent = 'Écris ton prénom à la fin d\'une partie pour apparaître dans le classement.'; }
+    else $('lbStatus').textContent = 'Chargement…';
+    try {
+      const res = await fetch(`${lbBase()}:runQuery?key=${LEADERBOARD.apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'scores' }], orderBy: [{ field: { fieldPath: 'score' }, direction: 'DESCENDING' }], limit: 60 } }),
+      });
+      const rows = (await res.json()).filter(x => x.document).map(x => ({
+        name: x.document.fields.name.stringValue, score: +x.document.fields.score.integerValue,
+      }));
+      const bestBy = new Map();
+      for (const row of rows) if (!bestBy.has(row.name) || bestBy.get(row.name) < row.score) bestBy.set(row.name, row.score);
+      const top = [...bestBy].sort((a, b) => b[1] - a[1]).slice(0, 20);
+      $('lbStatus').textContent = top.length ? (save.name ? '' : $('lbStatus').textContent) : 'Personne n\'a encore de score. À toi de jouer !';
+      const esc = v => v.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      $('lbList').innerHTML = top.map(([n, sc]) => `<li class="${n === save.name ? 'me' : ''}"><span>${esc(n)}</span><span class="sc">${fmt(sc)}</span></li>`).join('');
+    } catch { $('lbStatus').textContent = 'Impossible de charger le classement. Vérifie ta connexion Internet.'; }
+  }
+  $('lbBtn').addEventListener('click', openLeaderboard);
+  $('playerName').addEventListener('change', () => submitScore(lastScore));
+  $('lbBack').addEventListener('click', showMenu);
   $('tutoAgain').addEventListener('click', () => { save.tuto = false; persist(); $('settingsScreen').hidden = true; start(); });
   function openTrophies() {
     $('startScreen').hidden = true; $('trophyScreen').hidden = false;
