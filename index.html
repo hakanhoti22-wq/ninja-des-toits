@@ -287,6 +287,7 @@
         <div class="chip"><small>Niveau</small><span id="level">1</span></div>
         <div class="chip"><small>Multi</small><span id="multi">×1</span></div>
         <div class="chip" id="chalChip" hidden><small>Défi</small><span id="chal">0</span></div>
+        <div class="chip" id="yarnChip"><small>Pelotes</small><span id="yarnN">0</span></div>
         <div class="chip combo" id="comboChip" hidden><small>Combo</small><span id="combo">0</span></div>
       </div>
       <div class="powers" id="powers"></div>
@@ -298,7 +299,7 @@
   </div>
 
   <div class="level out" id="levelToast" aria-live="polite"></div>
-  <div class="hint" id="hint" hidden>Glisse ← → pour changer de voie · ↑ sauter · ↓ glisser</div>
+  <div class="hint" id="hint" hidden>Glisse ← → pour changer de voie · ↑ sauter · ↓ glisser · touche 2 fois = pelote de laine</div>
 
   <div class="overlay menu" id="startScreen">
     <div class="panel">
@@ -326,6 +327,8 @@
           <li><b>Changer de voie</b> : glisse à gauche ou à droite (← →)</li>
           <li><b>Sauter</b> : glisse vers le haut ou touche l'écran (↑, Espace)</li>
           <li><b>Glisser</b> : glisse vers le bas (↓) sous les panneaux</li>
+          <li><b>Pelote de laine</b> : touche 2 fois l'écran (touche E)</li>
+          <li><b>Attention</b> : si tu frôles un obstacle, tu trébuches et le chien arrive. Trébuche encore et il t'attrape&nbsp;!</li>
           <li><b>Poissons</b> : ils te servent à acheter des skins et des boosters</li>
           <li><b>Missions</b> : 3 missions réussies = multiplicateur de score +1</li>
           <li><b>Combo</b> : enchaîne les obstacles sans te faire toucher</li>
@@ -1116,7 +1119,7 @@
 
   const BOOSTERS = [
     { id: 'jetpack', name: 'Jetpack', desc: 'Vole 7 s, 5 fois plus vite, au-dessus des toits et ramasse au moins 130 poissons.', price: 250, color: '#ff7a3a', dur: 7 },
-    { id: 'yarn', name: 'Pelote de laine', desc: "Le chat roule dessus pendant 30 s. Elle le protège d'un choc.", price: 150, color: '#ff7ac8', dur: 30 },
+    { id: 'yarn', name: 'Pelote de laine', desc: "Touche 2 fois l'écran pendant la course : le chat roule 30 s dessus et elle le protège d'un choc.", price: 50, color: '#ff7ac8', dur: 30 },
     { id: 'magnet', name: 'Aimant', desc: 'Attire les poissons pendant 15 s au départ.', price: 100, color: '#e8483b', dur: 15 },
     { id: 'double', name: 'Poissons ×2', desc: 'Poissons doublés pendant 20 s au départ.', price: 200, color: '#ffcf7a', dur: 20 },
   ];
@@ -1249,6 +1252,7 @@
     power: () => [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, 'triangle', 0.07, 0, i * 0.07)),
     shield: () => beep(800, 0.3, 'sine', 0.08, 200),
     hit: () => beep(220, 0.45, 'sawtooth', 0.08, 60),
+    stumble: () => { beep(200, 0.18, 'triangle', 0.09, 110); beep(150, 0.15, 'triangle', 0.07, 90, 0.12); },
   };
 
   // ---------- État du jeu ----------
@@ -1269,7 +1273,7 @@
 
   function reset() {
     clearWorld();
-    p = { lane: 0, x: 0, y: 0, vy: 0, grounded: true, slide: 0, falling: false, dead: false, run: 0, deadT: 0, invuln: 0, flying: false };
+    p = { lane: 0, prevLane: 0, x: 0, y: 0, vy: 0, grounded: true, slide: 0, falling: false, dead: false, run: 0, deadT: 0, invuln: 0, flying: false, stumble: 0 };
     segments = []; obstacles = []; fishes = []; items = []; buildings = []; pigeons = [];
     active = { magnet: 0, shield: 0, jump: 0, double: 0, jetpack: 0, yarn: 0 };
     activeMax = {};
@@ -1444,7 +1448,15 @@
   function move(dir) {
     if (state !== 'play' || p.dead) return;
     const n = Math.max(-1, Math.min(1, p.lane + dir));
-    if (n !== p.lane) { p.lane = n; sfx.lane(); }
+    if (n !== p.lane) { p.prevLane = p.lane; p.lane = n; sfx.lane(); }
+  }
+  // Double toucher : sortir une pelote de laine de son stock.
+  function useYarn() {
+    if (state !== 'play' || p.dead || active.yarn > 0) return;
+    if (save.boosters.yarn <= 0) { toast('Plus de pelote', 'Achète-en à la boutique : 50 poissons'); return; }
+    save.boosters.yarn--; persist();
+    activate('yarn', 30); sfx.power();
+    $('yarnN').textContent = save.boosters.yarn;
   }
 
   const currentScore = () => Math.floor((travel + fishCount * 10 + (run ? run.bonus : 0)) * save.mult);
@@ -1462,6 +1474,17 @@
       if (Math.random() < 0.06) lane = Math.max(-1, Math.min(1, lane + pick([-1, 1])));
       addFish(lane, -travel - 15 - i * step, 5.6).sky = true;
     }
+  }
+
+  // Frôler un obstacle : le chat trébuche et le chien se rapproche. S'il poursuit déjà, il l'attrape.
+  function graze(o) {
+    o.grazed = true;
+    if (p.invuln > 0 || p.dead || active.shield > 0 || active.yarn > 0) return;
+    run.combo = 0; shake = 0.25; sfx.stumble();
+    if (dogT > 0) { run.caught = true; die(); return; }
+    p.stumble = 0.7;
+    chase(7);
+    toast('Tu as trébuché !', 'Le chien arrive : ne trébuche plus');
   }
 
   // Un choc : le bouclier l'absorbe, sinon c'est perdu.
@@ -1521,6 +1544,7 @@
     p.dead = false; p.deadT = 0; p.falling = false; p.vy = 0; p.y = Math.max(p.y, 0.3);
     cat.rotation.x = 0;
     p.hover = true; active.jetpack = 1.4; activeMax.jetpack = 1.4;
+    run.caught = false; dogT = 0; p.stumble = 0;
     p.invuln = 2.5;
     state = 'play'; last = performance.now();
     toast('C\'est reparti !');
@@ -1545,7 +1569,7 @@
     $('finalScore').textContent = fmt(score);
     $('finalBest').textContent = fmt(best);
     $('newBest').hidden = !isBest;
-    $('overTitle').textContent = isBest ? 'Bravo !' : run.chalDone ? 'Défi relevé !' : 'Aïe !';
+    $('overTitle').textContent = run.caught ? 'Attrapé par le chien !' : isBest ? 'Bravo !' : run.chalDone ? 'Défi relevé !' : 'Aïe !';
     $('earned').innerHTML = `+${fishCount} ${FISH_SVG} · total ${fmt(save.fish)}`;
     const gap = best - score;
     $('almost').hidden = isBest || !best || gap > best * 0.25;
@@ -1611,7 +1635,8 @@
       if (lvl !== level) { level = lvl; showLevel(); }
       // Le jetpack fait filer le chat 5 fois plus vite.
       boost += ((active.jetpack > 0 && !p.hover ? JET_BOOST : 1) - boost) * Math.min(1, dt * 4);
-      stepDist = speed * boost * dt;
+      p.stumble = Math.max(0, p.stumble - dt);
+      stepDist = speed * boost * (p.stumble > 0 ? 0.55 : 1) * dt;
       travel += stepDist;
       for (const k in active) if (k !== 'shield' || active[k] > 0) active[k] = Math.max(0, active[k] - dt);
     }
@@ -1671,13 +1696,21 @@
       const sliding = p.slide > 0 && p.grounded;
       const topY = p.y + (sliding ? 0.65 : 1.35);
       for (const o of obstacles) {
-        if (o.dead || p.flying) continue;
+        if (o.dead || o.grazed || p.flying) continue;
         const oz = o.z + travel, ox = o.lane * LANE_W;
         const half = o.type === 'low' ? 0.65 : 0.9;
         const depth = o.type === 'tall' ? 0.9 : o.type === 'low' ? 0.45 : 0.15;
         if (Math.abs(ox - p.x) > half + 0.3 || Math.abs(oz) > depth + 0.4) continue;
         const touch = o.type === 'low' ? p.y < 0.9 : o.type === 'high' ? (topY > 1.02 && p.y < 1.9) : p.y < 3.6;
-        if (touch) { hit(o); break; }
+        if (!touch) continue;
+        // Choc de côté en changeant de voie : on rebondit vers sa voie et on trébuche.
+        const changing = Math.abs(p.lane * LANE_W - p.x) > 0.3;
+        // Pattes qui accrochent le haut d'une cheminée, ou oreilles qui frôlent un panneau.
+        const clip = (o.type === 'low' && p.y > 0.55) || (o.type === 'high' && topY < 1.25);
+        if (changing) { if (o.lane === p.lane) p.lane = p.prevLane; graze(o); }
+        else if (clip) graze(o);
+        else hit(o);
+        break;
       }
       // Poissons (et aimant)
       for (const f of fishes) {
@@ -1916,7 +1949,8 @@
     animateWorld(dt, t);
     // Chien : au départ et après un choc, il court derrière le chat
     if (state === 'play') dogT = Math.max(0, dogT - dt);
-    const dz = state === 'play' && dogT > 0 ? 3.1 : 18;
+    const caught = run && run.caught && state !== 'menu';
+    const dz = caught ? 0.9 : state === 'play' && dogT > 0 ? (p.stumble > 0 || dogT > 5 ? 2.2 : 3.1) : 18;
     dog.position.z += (dz - dog.position.z) * Math.min(1, dt * (dz < 10 ? 2.5 : 1.2));
     dog.position.x += (p.x - dog.position.x) * Math.min(1, dt * 4);
     dog.visible = dog.position.z < 12;
@@ -1948,7 +1982,7 @@
     cat.position.set(p.x, p.y, 0);
     const sliding = p.slide > 0 && p.grounded;
     catBody.scale.y += ((sliding ? 0.5 : 1) - catBody.scale.y) * Math.min(1, dt * 18);
-    catBody.rotation.z = (p.lane * LANE_W - p.x) * -0.18;
+    catBody.rotation.z = (p.lane * LANE_W - p.x) * -0.18 + (p.stumble > 0 ? Math.sin(t * 30) * 0.35 * p.stumble : 0);
     // Salto pendant certains sauts
     catBody.rotation.x = p.flip && !p.grounded && !p.flying ? -Math.min(1, p.air / 0.6) * Math.PI * 2
       : p.grounded ? Math.sin(p.run * 2) * 0.03 : -0.15;
@@ -2079,6 +2113,7 @@
     showPet(save.pet);
     persist();
     $('multi').textContent = '×' + save.mult;
+    $('yarnN').textContent = save.boosters.yarn;
     $('chalChip').hidden = !save.challenge;
     $('chalChip').classList.remove('combo');
     if (save.challenge) $('chal').textContent = fmt(save.challenge.score);
@@ -2116,7 +2151,14 @@
     else if (dy < 0) jump();
     else slide();
   });
-  canvas.addEventListener('pointerup', () => { if (touch && !touch.done) jump(); touch = null; });
+  let lastTap = 0;
+  canvas.addEventListener('pointerup', () => {
+    if (touch && !touch.done) {
+      const now = performance.now();
+      if (now - lastTap < 320) { lastTap = 0; useYarn(); } else { lastTap = now; jump(); }
+    }
+    touch = null;
+  });
   canvas.addEventListener('pointercancel', () => { touch = null; });
 
   window.addEventListener('keydown', e => {
@@ -2129,6 +2171,7 @@
     else if (c === 'ArrowDown' || c === 'KeyS') slide();
     else if (c === 'ArrowLeft' || c === 'KeyA') move(-1);
     else if (c === 'ArrowRight' || c === 'KeyD') move(1);
+    else if (c === 'KeyE' || c === 'ShiftLeft' || c === 'ShiftRight') useYarn();
     else if (c === 'KeyP' || c === 'Escape') setPause(state === 'play');
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
