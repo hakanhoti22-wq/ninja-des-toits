@@ -4,6 +4,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1d1730">
+<meta name="apple-mobile-web-app-title" content="Ninja Toits">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Ninja des Toits</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -274,6 +280,20 @@
   .soft { margin: 0; font-size: calc(14 * var(--u)); opacity: 0.85; }
   #overScreen .panel { max-height: calc(100% - 32px); overflow-y: auto; }
   @media (prefers-reduced-motion: reduce) { .chest-btn, .chest.shake { animation: none; } }
+  /* Réglages */
+  .setting { display: flex; justify-content: space-between; align-items: center; gap: calc(10 * var(--u)); width: 100%; text-align: left; font-weight: 800; }
+  .setting.col { flex-direction: column; align-items: stretch; }
+  .toggle {
+    border: 0; border-radius: 999px; min-width: calc(70 * var(--u)); padding: calc(8 * var(--u)) calc(14 * var(--u));
+    font: 800 calc(14 * var(--u)) var(--body); cursor: pointer; background: rgba(255, 255, 255, 0.12); color: var(--ink);
+  }
+  .toggle[aria-pressed="true"] { background: var(--band); }
+  .seg { display: flex; gap: calc(4 * var(--u)); background: rgba(255, 255, 255, 0.08); border-radius: 999px; padding: calc(3 * var(--u)); }
+  .seg button { border: 0; border-radius: 999px; padding: calc(7 * var(--u)) calc(10 * var(--u)); background: transparent; color: var(--ink); font: 800 calc(13 * var(--u)) var(--body); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--band); }
+  .toggle:focus-visible, .seg button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  #settingsScreen .panel { max-height: 75%; }
+  .soft a { color: var(--gold); }
 </style>
 
 <div id="app">
@@ -320,6 +340,7 @@
       <div class="row">
         <button class="ghost-btn" id="shopBtn">Boutique</button>
         <button class="ghost-btn" id="albumBtn">Collection</button>
+        <button class="ghost-btn" id="settingsBtn">Réglages</button>
       </div>
       <details class="howto">
         <summary>Comment jouer</summary>
@@ -420,6 +441,24 @@
     </div>
   </div>
 
+  <div class="overlay menu" id="settingsScreen" hidden>
+    <div class="panel">
+      <h2>Réglages</h2>
+      <div class="setting"><span>Musique</span><button class="toggle" id="optMusic" aria-pressed="true">Oui</button></div>
+      <div class="setting"><span>Effets sonores</span><button class="toggle" id="optSfx" aria-pressed="true">Oui</button></div>
+      <div class="setting"><span>Qualité</span>
+        <div class="seg" id="optQuality" role="group" aria-label="Qualité graphique">
+          <button data-q="auto">Auto</button><button data-q="beau">Belle</button><button data-q="rapide">Rapide</button>
+        </div>
+      </div>
+      <p class="soft" id="qualityNote"></p>
+      <div class="setting col"><span>Installer le jeu</span><p class="soft" id="installText"></p>
+        <button class="ghost-btn" id="installBtn" hidden>Installer sur ce téléphone</button></div>
+      <div id="parentSection"></div>
+      <button class="ghost-btn" id="settingsBack">Retour</button>
+    </div>
+  </div>
+
   <div class="overlay" id="pauseScreen" hidden>
     <div class="panel">
       <h2>Pause</h2>
@@ -428,7 +467,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="vendor/three.min.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -1232,28 +1271,122 @@
   } catch {}
 
   // ---------- Son ----------
-  let audio = null, muted = false;
+  // Tout est synthétisé : aucun fichier audio à télécharger.
+  let audio = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null, muted = false;
+  let sfxOn = save.sfx !== false, musicOn = save.music !== false;
+  function getAudio() {
+    if (!audio) {
+      try {
+        audio = new (window.AudioContext || window.webkitAudioContext)();
+        master = audio.createGain(); master.connect(audio.destination);
+        sfxBus = audio.createGain(); sfxBus.connect(master);
+        musicBus = audio.createGain(); musicBus.connect(master);
+        noiseBuf = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
+        const d = noiseBuf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        applyVolumes();
+      } catch { audio = null; }
+    }
+    if (audio && audio.state === 'suspended') audio.resume();
+    return audio;
+  }
+  function applyVolumes() {
+    if (!audio) return;
+    master.gain.value = muted ? 0 : 1;
+    sfxBus.gain.value = sfxOn ? 1 : 0;
+    musicBus.gain.value = musicOn ? 0.5 : 0;
+  }
+  function tone(freq, t, dur, type, vol, dest, attack = 0.005, slide = 0) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(dest); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(t, dur, vol, ftype, freq, dest, sweep = 0) {
+    const src = audio.createBufferSource(), fl = audio.createBiquadFilter(), g = audio.createGain();
+    src.buffer = noiseBuf; fl.type = ftype; fl.frequency.setValueAtTime(freq, t);
+    if (sweep) fl.frequency.exponentialRampToValueAtTime(sweep, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(fl).connect(g).connect(dest); src.start(t); src.stop(t + dur + 0.02);
+  }
   function beep(freq, dur, type = 'square', vol = 0.06, slide = 0, delay = 0) {
-    if (muted) return;
-    try {
-      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-      const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime + delay;
-      o.type = type; o.frequency.setValueAtTime(freq, t);
-      if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g).connect(audio.destination); o.start(t); o.stop(t + dur);
-    } catch {}
+    if (muted || !sfxOn || !getAudio()) return;
+    try { tone(freq, audio.currentTime + delay, dur, type, vol, sfxBus, 0.005, slide); } catch {}
+  }
+  function play(fn) {
+    if (muted || !sfxOn || !getAudio()) return;
+    try { fn(audio.currentTime); } catch {}
+  }
+  function meow(t, pitch = 1) {
+    const o = audio.createOscillator(), fl = audio.createBiquadFilter(), g = audio.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(520 * pitch, t); o.frequency.exponentialRampToValueAtTime(880 * pitch, t + 0.16);
+    o.frequency.exponentialRampToValueAtTime(480 * pitch, t + 0.5);
+    fl.type = 'bandpass'; fl.Q.value = 3; fl.frequency.setValueAtTime(900, t); fl.frequency.linearRampToValueAtTime(1600, t + 0.2); fl.frequency.linearRampToValueAtTime(700, t + 0.5);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+    o.connect(fl).connect(g).connect(sfxBus); o.start(t); o.stop(t + 0.6);
   }
   const sfx = {
-    jump: () => beep(420, 0.15, 'square', 0.05, 760),
-    lane: () => beep(300, 0.06, 'triangle', 0.05, 380),
-    slide: () => beep(500, 0.18, 'sawtooth', 0.03, 200),
-    fish: () => { beep(988, 0.08, 'triangle', 0.07); beep(1318, 0.12, 'triangle', 0.07, 0, 0.06); },
-    power: () => [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, 'triangle', 0.07, 0, i * 0.07)),
-    shield: () => beep(800, 0.3, 'sine', 0.08, 200),
-    hit: () => beep(220, 0.45, 'sawtooth', 0.08, 60),
-    stumble: () => { beep(200, 0.18, 'triangle', 0.09, 110); beep(150, 0.15, 'triangle', 0.07, 90, 0.12); },
+    jump: () => play(t => { noise(t, 0.22, 0.12, 'bandpass', 600, sfxBus, 2400); tone(420, t, 0.15, 'triangle', 0.05, sfxBus, 0.005, 760); }),
+    lane: () => play(t => noise(t, 0.12, 0.08, 'bandpass', 1400, sfxBus, 500)),
+    slide: () => play(t => noise(t, 0.3, 0.1, 'lowpass', 1800, sfxBus, 300)),
+    fish: () => play(t => { tone(1318, t, 0.12, 'sine', 0.08, sfxBus); tone(1760, t + 0.05, 0.18, 'sine', 0.07, sfxBus); }),
+    power: () => play(t => [523, 659, 784, 1046].forEach((f, i) => tone(f, t + i * 0.07, 0.14, 'triangle', 0.07, sfxBus))),
+    shield: () => play(t => { tone(800, t, 0.3, 'sine', 0.08, sfxBus, 0.005, 200); noise(t, 0.25, 0.08, 'highpass', 3000, sfxBus); }),
+    hit: () => play(t => { noise(t, 0.35, 0.25, 'lowpass', 900, sfxBus, 120); tone(160, t, 0.4, 'sine', 0.2, sfxBus, 0.005, 40); meow(t + 0.1, 1.25); }),
+    stumble: () => play(t => { noise(t, 0.2, 0.15, 'lowpass', 700, sfxBus, 150); tone(200, t, 0.18, 'triangle', 0.08, sfxBus, 0.005, 110); }),
+    meow: () => play(t => meow(t)),
   };
+
+  // Musique : une boucle par monde, plus calme au menu et plus rapide à chaque niveau.
+  const midi = m => 440 * 2 ** ((m - 69) / 12);
+  const SONGS = [
+    { bpm: 116, chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], lead: 'square' },
+    { bpm: 96, chords: [[50, 53, 57], [46, 50, 53], [53, 57, 60], [48, 52, 55]], lead: 'sine' },
+    { bpm: 104, chords: [[60, 64, 67], [55, 59, 62], [57, 60, 64], [53, 57, 60]], lead: 'triangle', bell: true },
+    { bpm: 100, chords: [[62, 65, 69], [60, 64, 67], [58, 62, 65], [57, 60, 64]], lead: 'triangle', penta: [62, 65, 67, 69, 72, 74, 77] },
+  ];
+  let mStep = 0, mNext = 0;
+  function kick(t) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.16);
+    g.gain.setValueAtTime(0.28, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    o.connect(g).connect(musicBus); o.start(t); o.stop(t + 0.22);
+  }
+  function playStep(song, st, t, calm, sd) {
+    const bar = Math.floor(st / 16) % 4, s16 = st % 16, ch = song.chords[bar];
+    if (s16 === 0 || s16 === 8 || (!calm && s16 === 11)) tone(midi(ch[0] - 24), t, sd * 3, 'triangle', 0.14, musicBus);
+    if (s16 % 2 === 0) {
+      const n = song.penta ? song.penta[(st * 5 + bar * 3) % song.penta.length] : ch[(s16 / 2) % 3] + 12;
+      tone(midi(n), t, sd * 1.7, song.lead, song.lead === 'square' ? 0.025 : 0.045, musicBus);
+    }
+    if (song.bell && s16 % 4 === 2) tone(midi(ch[2] + 24), t, sd * 4, 'sine', 0.035, musicBus);
+    if (s16 === 0) ch.forEach(n => tone(midi(n), t, sd * 15, 'sine', 0.02, musicBus, 0.25));
+    if (!calm) {
+      if (s16 % 8 === 0) kick(t);
+      if (s16 % 8 === 4) noise(t, 0.12, 0.09, 'bandpass', 1800, musicBus);
+      if (s16 % 2 === 1) noise(t, 0.03, 0.03, 'highpass', 7000, musicBus);
+    }
+  }
+  function musicTick() {
+    if (!audio || !musicOn || muted || audio.state !== 'running') return;
+    const song = SONGS[state === 'menu' ? 0 : worldIdx];
+    const calm = state !== 'play';
+    const bpm = song.bpm + (state === 'play' ? Math.min(30, (level - 1) * 3) : -16);
+    const sd = 60 / bpm / 4;
+    if (mNext < audio.currentTime) mNext = audio.currentTime + 0.05;
+    try {
+      while (mNext < audio.currentTime + 0.15) { playStep(song, mStep, mNext, calm, sd); mNext += sd; mStep++; }
+    } catch {}
+  }
+  setInterval(musicTick, 40);
+  // Le navigateur n'autorise le son qu'après un premier toucher.
+  const unlockAudio = () => getAudio();
+  window.addEventListener('pointerdown', unlockAudio, { capture: true });
+  window.addEventListener('keydown', unlockAudio, { capture: true });
 
   // ---------- État du jeu ----------
   let state = 'menu'; // menu | play | pause | over
@@ -1547,7 +1680,7 @@
     run.caught = false; dogT = 0; p.stumble = 0;
     p.invuln = 2.5;
     state = 'play'; last = performance.now();
-    toast('C\'est reparti !');
+    toast('C\'est reparti !'); sfx.meow();
   }
 
   function finishRun() {
@@ -1899,7 +2032,9 @@
   dog.position.set(0, 0, 18);
   scene.add(dog);
   let dogT = 0;
-  const bark = () => { beep(330, 0.08, 'square', 0.06, 260); beep(300, 0.1, 'square', 0.06, 220, 0.14); };
+  const bark = () => play(t => {
+    for (const d of [0, 0.16]) { noise(t + d, 0.1, 0.22, 'bandpass', 900, sfxBus, 500); tone(330, t + d, 0.09, 'square', 0.06, sfxBus, 0.004, 240); }
+  });
   function chase(sec) { dogT = Math.max(dogT, sec); bark(); }
 
   // ---------- Compagnons ----------
@@ -2080,7 +2215,9 @@
   // ---------- Boucle ----------
   let last = performance.now();
   function frame(now) {
-    const dt = Math.min(0.033, (now - last) / 1000); last = now;
+    const rawDt = (now - last) / 1000;
+    const dt = Math.min(0.033, rawDt); last = now;
+    if (rawDt < 1) watchFps(rawDt);
     const t = now / 1000;
     if (state === 'play') update(dt, t);
     else if (state === 'menu') p.run += dt * 8;
@@ -2109,7 +2246,7 @@
       }
     }
     for (const m of save.missions) m.fresh = false;
-    setWorld(0); dog.position.z = 9; chase(3);
+    setWorld(0); dog.position.z = 9; chase(3); sfx.meow();
     showPet(save.pet);
     persist();
     $('multi').textContent = '×' + save.mult;
@@ -2134,7 +2271,7 @@
   $('resumeBtn').addEventListener('click', () => setPause(false));
   $('pause').addEventListener('click', e => { e.stopPropagation(); setPause(state === 'play'); });
   $('mute').addEventListener('click', e => {
-    e.stopPropagation(); muted = !muted;
+    e.stopPropagation(); muted = !muted; getAudio(); applyVolumes();
     $('mute').textContent = muted ? '×' : '♪';
     $('mute').setAttribute('aria-label', muted ? 'Activer le son' : 'Couper le son');
   });
@@ -2174,7 +2311,9 @@
     else if (c === 'KeyE' || c === 'ShiftLeft' || c === 'ShiftRight') useYarn();
     else if (c === 'KeyP' || c === 'Escape') setPause(state === 'play');
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { setPause(true); if (audio) audio.suspend(); }
+  });
 
   // ---------- Menu ----------
   const FISH_SVG = '<svg class="fi" viewBox="0 0 24 14" aria-hidden="true"><path d="M1 7c4-6.5 12-6.5 16 0-4 6.5-12 6.5-16 0z"/><path d="M16 7l7-6v12z"/></svg>';
@@ -2197,6 +2336,7 @@
     $('hudLeft').hidden = true; $('pause').hidden = true; $('hint').hidden = true;
     $('overScreen').hidden = true; $('pauseScreen').hidden = true; $('shopScreen').hidden = true;
     $('startScreen').hidden = false;
+    $('settingsScreen').hidden = true;
     $('chestScreen').hidden = true; $('albumScreen').hidden = true; $('reviveScreen').hidden = true;
     refreshWallet(); renderBoostRow(); renderMissions();
     $('chestBtn').hidden = !chestReady();
@@ -2400,6 +2540,69 @@
     $('shopMsg').textContent = `${d.name} acheté (×${save.boosters[d.id]})`;
     renderShop();
   });
+
+  // ---------- Qualité graphique ----------
+  let quality = save.quality || 'auto', qualityLive = quality === 'rapide' ? 'rapide' : 'beau';
+  function applyQuality(q) {
+    qualityLive = q;
+    const fast = q === 'rapide';
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, fast ? 1 : isSmall ? 1.75 : 2));
+    sunLight.castShadow = !fast;
+    pGeo.setDrawRange(0, fast ? 220 : PCOUNT);
+    for (const fl of flocks) fl.group.visible = !fast;
+    resize();
+  }
+  // En mode Auto, le jeu passe en Rapide s'il tourne à moins de 40 images par seconde.
+  const fpsMeter = { frames: 0, time: 0 };
+  function watchFps(rawDt) {
+    if (quality !== 'auto' || qualityLive !== 'beau' || state !== 'play') { fpsMeter.frames = 0; fpsMeter.time = 0; return; }
+    fpsMeter.frames++; fpsMeter.time += rawDt;
+    if (fpsMeter.time < 4) return;
+    const fps = fpsMeter.frames / fpsMeter.time;
+    fpsMeter.frames = 0; fpsMeter.time = 0;
+    if (fps < 40) { applyQuality('rapide'); toast('Mode rapide', 'Qualité réduite pour un jeu plus fluide'); }
+  }
+  applyQuality(qualityLive);
+
+  // ---------- Réglages ----------
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const installed = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone;
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; renderSettings(); });
+  function renderSettings() {
+    $('optMusic').setAttribute('aria-pressed', musicOn); $('optMusic').textContent = musicOn ? 'Oui' : 'Non';
+    $('optSfx').setAttribute('aria-pressed', sfxOn); $('optSfx').textContent = sfxOn ? 'Oui' : 'Non';
+    $('optQuality').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.q === quality));
+    $('qualityNote').textContent = quality === 'auto' ? `Auto : le jeu choisit tout seul (en ce moment : ${qualityLive === 'beau' ? 'belle' : 'rapide'}).`
+      : quality === 'beau' ? 'Belle : ombres et effets, pour les téléphones récents.' : 'Rapide : moins d\'effets, plus fluide sur les vieux téléphones.';
+    $('installBtn').hidden = !installPrompt || installed();
+    $('installText').innerHTML = installed() ? 'Le jeu est déjà installé sur cet appareil.'
+      : isIOS ? 'Sur iPhone ou iPad : dans Safari, touche le bouton Partager (le carré avec la flèche), puis « Sur l\'écran d\'accueil ».'
+      : installPrompt ? 'Ajoute le jeu à ton écran d\'accueil : il s\'ouvre en plein écran et marche sans Internet.'
+      : 'Sur Android : menu ⋮ du navigateur, puis « Installer l\'application ». Ou télécharge <a href="https://github.com/hakanhoti22-wq/ninja-des-toits/releases/tag/android" target="_blank" rel="noopener">l\'APK Android</a>.';
+  }
+  function openSettings() {
+    $('startScreen').hidden = true; $('settingsScreen').hidden = false;
+    renderSettings(); $('settingsBack').focus();
+  }
+  $('settingsBtn').addEventListener('click', openSettings);
+  $('settingsBack').addEventListener('click', () => { $('settingsScreen').hidden = true; showMenu(); });
+  $('optMusic').addEventListener('click', () => { musicOn = !musicOn; save.music = musicOn; persist(); getAudio(); applyVolumes(); renderSettings(); });
+  $('optSfx').addEventListener('click', () => { sfxOn = !sfxOn; save.sfx = sfxOn; persist(); getAudio(); applyVolumes(); renderSettings(); if (sfxOn) sfx.fish(); });
+  $('optQuality').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    quality = b.dataset.q; save.quality = quality; persist();
+    applyQuality(quality === 'rapide' ? 'rapide' : 'beau'); renderSettings();
+  });
+  $('installBtn').addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    try { await installPrompt.userChoice; } catch {}
+    installPrompt = null; renderSettings();
+  });
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
 
   showMenu();
   // Le message attend que la page soit affichée, pour ne pas disparaître pendant le chargement.
