@@ -78,13 +78,15 @@
   .icon-btn:focus-visible, .big-btn:focus-visible { outline: calc(3 * var(--u)) solid var(--gold); outline-offset: calc(3 * var(--u)); }
 
   .level {
-    position: absolute; left: 0; right: 0; top: 34%;
+    /* Juste sous les compteurs du haut, pour laisser la route et les obstacles bien visibles */
+    position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 150 * var(--u));
+    padding-inline: max(16px, env(safe-area-inset-left, 0px));
     text-align: center; pointer-events: none; z-index: 5;
-    font-family: var(--display); font-size: calc(30 * var(--u)); color: var(--gold);
+    font-family: var(--display); font-size: calc(22 * var(--u)); color: var(--gold);
     text-shadow: 0 calc(2 * var(--u)) calc(10 * var(--u)) rgba(0,0,0,0.55);
     transition: opacity 0.4s, transform 0.4s;
   }
-  .level small { display: block; font-family: var(--body); font-weight: 800; font-size: calc(16 * var(--u)); color: var(--ink); }
+  .level small { display: block; font-family: var(--body); font-weight: 800; font-size: calc(14 * var(--u)); color: var(--ink); }
   .level.out { opacity: 0; transform: scale(0.85); }
   .hint {
     position: absolute; left: 0; right: 0;
